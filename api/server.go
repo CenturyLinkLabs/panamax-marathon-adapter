@@ -11,30 +11,34 @@ import (
 
 // The one and only martini instance.
 var mServer *martini.Martini
+var adapterInstance PanamaxAdapter
 
 func init() {
 	mServer = martini.New()
 	// Setup middleware
 	mServer.Use(martini.Recovery())
 	mServer.Use(martini.Logger())
-	mServer.Use(MapEncoder)
+	mServer.Use(mapEncoder)
+	mServer.Use(adapter)
 	// Setup routes
 	r := martini.NewRouter()
-	r.Get(`/services`, GetServices)
-	r.Get(`/services/:id`, GetService)
+	r.Get(`/services`, getServices)
+	r.Get(`/services/:id`, getService)
+	r.Post(`/services`, createService)
+
 	// Add the router action
 	mServer.Action(r.Handle)
 }
 
 // The regex to check for the requested format (allows an optional trailing
-// slash).
+// slash)
 var rxExt = regexp.MustCompile(`(\.(?:json))\/?$`)
 
 // MapEncoder intercepts the request's URL, detects the requested format,
 // and injects the correct encoder dependency for this request. It rewrites
 // the URL to remove the format extension, so that routes can be defined
 // without it.
-func MapEncoder(c martini.Context, w http.ResponseWriter, r *http.Request) {
+func mapEncoder(c martini.Context, w http.ResponseWriter, r *http.Request) {
 	// Get the format extension
 	matches := rxExt.FindStringSubmatch(r.URL.Path)
 	ft := ".json"
@@ -56,7 +60,12 @@ func MapEncoder(c martini.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ListenAndServe() {
+func adapter(c martini.Context, w http.ResponseWriter, r *http.Request) {
+	c.Map(adapter)
+}
+
+func ListenAndServe(theAdapter PanamaxAdapter) {
+        adapterInstance = theAdapter
 	err := http.ListenAndServe(":8001", mServer)
 	if	err != nil {
 		log.Fatal(err)

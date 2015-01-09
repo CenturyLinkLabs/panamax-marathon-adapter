@@ -1,15 +1,29 @@
 package api
 
+const (
+	StartedStatus = "started"
+	StoppedStatus = "stopped"
+	ErrorStatus = "error"
+	)
+
+type PanamaxAdapter interface {
+	GetServices() ([]*Service)
+	GetService(string) (*Service)
+	CreateServices([]*Service) ([]*Response)
+	UpdateService(*Service) (bool)
+	DestroyService(*Service) (bool)
+}
+
 type Service struct {
 	Id           string `json:"id"`
 	Name         string `json:"name"`
 	Source       string `json:"source"`
 	Command      string `json:"command,omitempty"`
-	Links        []Link `json:"links,omitempty"`
-	Ports        []Port `json:"ports,omitempty"`
+	Links        []*Link `json:"links,omitempty"`
+	Ports        []*Port `json:"ports,omitempty"`
 	Expose       []uint16 `json:"expose,omitempty"`
-	Environment  []Environment `json:"environment,omitempty"`
-	Volumes      []Volume `json:"volumes,omitempty"`
+	Environment  []*Environment `json:"environment,omitempty"`
+	Volumes      []*Volume `json:"volumes,omitempty"`
 	DesiredState string `json:"desiredState,omitempty"`
 	CurrentState string `json:"currentState,omitempty"`
 }
@@ -35,3 +49,7 @@ type Volume struct {
 	ContainerPath string `json:"containerPath"`
 }
 
+type Response struct {
+	Id	      string `json:"id"`
+	CurrrentState string `json:"currentState,omitempty"`
+}

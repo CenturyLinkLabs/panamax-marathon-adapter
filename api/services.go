@@ -3,36 +3,43 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"encoding/json"
+
 	"github.com/codegangsta/martini"
-	"github.com/centurylinklabs/panamax-marathon-adapter/marathon"
 	"github.com/centurylinklabs/panamax-marathon-adapter/utils"
 )
 
-func GetServices(enc utils.Encoder) (int, string) {
-	// get Marathon apps
-	res, err := marathon.ListApplications()
-	if err != nil {
-		return http.StatusNotFound, fmt.Sprintf("%s", err)
-	}
+
+func getServices(enc utils.Encoder, adapter PanamaxAdapter) (int, string) {
+
+	res := adapter.GetServices()
 	data := utils.HandleError(enc.Encode(res))
 	// Convert the apps that are being returned into Services
 	return http.StatusOK, data
 }
 
-func GetService(enc utils.Encoder, params martini.Params) (int, string) {
+func getService(enc utils.Encoder, adapter PanamaxAdapter, params martini.Params) (int, string) {
+
 	id := params["id"]
 	if id == "" {
 		// empty data
 		return http.StatusNotFound, fmt.Sprintf("id %s - cannot be empty", id)
 	}
-	// get Marathon app by id
-	res, err := marathon.GetApplication(id)
-	if err != nil {
-		return http.StatusNotFound, fmt.Sprintf("%s", err)
-	}
-	data := utils.HandleError(enc.Encode(res))
+	res := adapter.GetService(id)
+
+	//data := utils.HandleError(enc.Encode(res))
 	// Convert the apps that are being returned into Services
-	return http.StatusOK, data
+	return http.StatusOK, res.Id
 }
 
 
+func createService(adapter PanamaxAdapter, r *http.Request, enc utils.Encoder) (int, string) {
+
+	var services []*Service
+
+	json.NewDecoder(r.Body).Decode(&services)
+	res := adapter.CreateServices(services)
+	data := utils.HandleError(enc.Encode(res))
+
+	return http.StatusOK, data
+}

@@ -88,10 +88,10 @@ func TestMarshalService(t *testing.T) {
 	environment := Environment{Variable: "start", Value: "end"}
 	volume := Volume{HostPath: "foo", ContainerPath: "bar"}
 	service := Service{Id: "myService", Name: "myServiceName", Source: "centurylink/service", Command: "/run.sh",
-			   Links: []Link{link},
-			   Ports: []Port{port},
-			   Environment: []Environment{environment},
-			   Volumes: []Volume{volume},
+			   Links: []*Link{&link},
+			   Ports: []*Port{&port},
+			   Environment: []*Environment{&environment},
+			   Volumes: []*Volume{&volume},
 			   Expose: []uint16{8080, 9000}}
 
 	jsonTest, _ := json.Marshal(service)
