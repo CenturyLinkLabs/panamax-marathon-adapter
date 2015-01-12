@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
-	"github.com/CenturyLinkLabs/panamax-marathon-adapter/marathon"
+	"github.com/centurylinklabs/panamax-marathon-adapter/api"
+	"github.com/centurylinklabs/panamax-marathon-adapter/marathon"
 )
 
 func main() {

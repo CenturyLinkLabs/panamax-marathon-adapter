@@ -2,7 +2,7 @@ package marathon
 
 
 import (
-	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
+	"github.com/centurylinklabs/panamax-marathon-adapter/api"
 	"github.com/jbdalido/gomarathon"
 )
 
