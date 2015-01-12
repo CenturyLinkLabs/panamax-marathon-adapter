@@ -61,7 +61,7 @@ func mapEncoder(c martini.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func adapter(c martini.Context, w http.ResponseWriter, r *http.Request) {
-	c.Map(adapter)
+	c.Map(adapterInstance)
 }
 
 func ListenAndServe(theAdapter PanamaxAdapter) {
