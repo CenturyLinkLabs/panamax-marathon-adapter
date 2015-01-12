@@ -11,7 +11,7 @@ func newClient(endpoint string) *gomarathon.Client {
 	if endpoint != "" {
 		url = endpoint
 	}
-	log.Printf("Marathon API: %s", url)
+	log.Printf("Marathon Endpoint: %s", url)
 	c, err := gomarathon.NewClient(url, nil)
 	if err != nil {
 		log.Fatal(err)

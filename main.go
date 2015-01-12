@@ -1,11 +1,18 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
 	"github.com/CenturyLinkLabs/panamax-marathon-adapter/marathon"
 )
 
 func main() {
-	marathonAdapter := marathon.NewMarathonAdapter("http://10.141.141.10:8080")
+	var endpoint = ""
+	if endpoint = os.Getenv("MARATHON_ENDPOINT"); endpoint == "" {
+		fmt.Println("Error: Invalid endpoint url. Set env. var. 'MARATHON_ENDPOINT' correctly. ")
+		os.Exit(1)
+	}
+	marathonAdapter := marathon.NewMarathonAdapter(endpoint)
 	api.ListenAndServe(marathonAdapter)
 }

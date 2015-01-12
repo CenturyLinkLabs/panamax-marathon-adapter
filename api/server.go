@@ -65,7 +65,8 @@ func adapter(c martini.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func ListenAndServe(theAdapter PanamaxAdapter) {
-        adapterInstance = theAdapter
+	adapterInstance = theAdapter
+	log.Printf("Adapter service running at localhost:8001")
 	err := http.ListenAndServe(":8001", mServer)
 	if	err != nil {
 		log.Fatal(err)
