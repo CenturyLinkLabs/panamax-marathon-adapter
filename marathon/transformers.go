@@ -4,7 +4,7 @@ package marathon
 import (
 	"github.com/centurylinklabs/panamax-marathon-adapter/api"
 	"github.com/jbdalido/gomarathon"
-  //"log"
+  "strings"
 )
 
 func convertToServices(apps []*gomarathon.Application) ([]*api.Service) {
@@ -39,7 +39,7 @@ func convertToApps(services []*api.Service) ([]*gomarathon.Application) {
 func convertToApp(service *api.Service) (*gomarathon.Application) {
 	app := new(gomarathon.Application)
 
-	app.ID = service.Name
+	app.ID = strings.ToLower(service.Name)
 	app.Cmd = service.Command
 	app.CPUs = 0.5
 	app.Env = buildEnvMap(service.Environment)
@@ -81,7 +81,14 @@ func buildPortMappings(ports []*api.Port) ([]*gomarathon.PortMapping) {
 		mapping := new(gomarathon.PortMapping)
 		mapping.ContainerPort = ports[i].ContainerPort
 		mapping.HostPort = 0
-		mapping.Protocol = "tcp"
+
+    proto := "tcp"
+
+    if ports[i].Protocol != "" {
+      proto = strings.ToLower(ports[i].Protocol)
+    }
+
+    mapping.Protocol = proto
 
 		mappings[i] = mapping
 	}

@@ -2,10 +2,9 @@ package marathon
 
 import (
 	"testing"
-	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
+	"github.com/centurylinklabs/panamax-marathon-adapter/api"
 	"github.com/jbdalido/gomarathon"
 	"github.com/stretchr/testify/assert"
-  "fmt"
 )
 
 func TestConvertToServices(t *testing.T) {
@@ -41,7 +40,7 @@ func TestConvertToApps(t *testing.T) {
 
 func TestConvertToApp(t *testing.T) {
 
-  service := api.Service{Name: "foo", Command: "echo"}
+  service := api.Service{Name: "FOO", Command: "echo"}
 
   app := convertToApp(&service)
 
@@ -76,7 +75,7 @@ func TestBuildPortMappings(t *testing.T) {
 
   port1 := api.Port{ContainerPort: 3000}
   port2 := api.Port{ContainerPort: 3001}
-  port3 := api.Port{ContainerPort: 3002}
+  port3 := api.Port{ContainerPort: 3002, Protocol: "UDP"}
 
   mappings := buildPortMappings([]*api.Port{&port1, &port2, &port3})
 
@@ -84,5 +83,6 @@ func TestBuildPortMappings(t *testing.T) {
   assert.Equal(t, 3000, mappings[0].ContainerPort)
   assert.Equal(t, 0, mappings[0].HostPort)
   assert.Equal(t, "tcp", mappings[0].Protocol)
+  assert.Equal(t, "udp", mappings[2].Protocol)
 
 }
