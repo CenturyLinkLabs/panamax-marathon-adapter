@@ -6,28 +6,40 @@ import (
 	"regexp"
 	"strings"
 	"github.com/codegangsta/martini"
-	"github.com/centurylinklabs/panamax-marathon-adapter/utils"
 )
 
-// The one and only martini instance.
-var mServer *martini.Martini
-var adapterInstance PanamaxAdapter
+type martiniServer struct {
+	svr *martini.Martini
+}
 
-func init() {
-	mServer = martini.New()
+func NewServer(adapterInst PanamaxAdapter) (*martiniServer) {
+	s := martini.New()
+
 	// Setup middleware
-	mServer.Use(martini.Recovery())
-	mServer.Use(martini.Logger())
-	mServer.Use(mapEncoder)
-	mServer.Use(adapter)
+	s.Use(martini.Recovery())
+	s.Use(martini.Logger())
+	s.Use(mapEncoder)
+	s.Use(func (c martini.Context, w http.ResponseWriter, r *http.Request) {
+		c.Map(adapterInst)
+	})
 	// Setup routes
-	r := martini.NewRouter()
-	r.Get(`/services`, getServices)
-	r.Get(`/services/:id`, getService)
-	r.Post(`/services`, createService)
-
+	router := martini.NewRouter()
+	router.Get(`/services`, getServices)
+	router.Get(`/services/:id`, getService)
+	router.Post(`/services`, createService)
+	router.Delete(`/services/:id`, deleteService)
 	// Add the router action
-	mServer.Action(r.Handle)
+	s.Action(router.Handle)
+	server := martiniServer{svr: s}
+
+	return &server
+}
+
+func (m *martiniServer) Start() {
+	err := http.ListenAndServe(":8001", m.svr)
+	if	err != nil {
+		log.Fatal(err)
+	}
 }
 
 // The regex to check for the requested format (allows an optional trailing
@@ -55,20 +67,7 @@ func mapEncoder(c martini.Context, w http.ResponseWriter, r *http.Request) {
 	switch ft {
 	// Add cases for other formats
 	default:
-		c.MapTo(utils.JsonEncoder{}, (*utils.Encoder)(nil))
+		c.MapTo(jsonEncoder{}, (*encoder)(nil))
 		w.Header().Set("Content-Type", "application/json")
-	}
-}
-
-func adapter(c martini.Context, w http.ResponseWriter, r *http.Request) {
-	c.Map(adapterInstance)
-}
-
-func ListenAndServe(theAdapter PanamaxAdapter) {
-	adapterInstance = theAdapter
-	log.Printf("Adapter service running at localhost:8001")
-	err := http.ListenAndServe(":8001", mServer)
-	if	err != nil {
-		log.Fatal(err)
 	}
 }

@@ -30,19 +30,19 @@ func NewMarathonAdapter(endpoint string) (*marathonAdapter) {
 }
 
 
-func (m *marathonAdapter) GetServices() ([]*api.Service) {
+func (m *marathonAdapter) GetServices() ([]*api.Service, *api.Error) {
 	response, _ := m.client.ListApps()
 
-	return convertApps(response.Apps)
+	return convertApps(response.Apps), nil
 }
 
-func (m *marathonAdapter) GetService(id string) (*api.Service) {
+func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 	response, _ := m.client.GetApp(id)
 
-	return convertApp(response.App)
+	return convertApp(response.App), nil
 }
 
-func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Response) {
+func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Response, *api.Error) {
 	group := new(gomarathon.Group)
 	//res := new(api.Response)
 
@@ -50,14 +50,14 @@ func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Respon
 	group.Apps = convertServices(services)
 	m.client.CreateGroup(group)
 
-	return make([]*api.Response, 0)
+	return make([]*api.Response, 0), nil
 }
 
-func (m *marathonAdapter) UpdateService(s *api.Service) (bool) {
-	return false;
+func (m *marathonAdapter) UpdateService(s *api.Service) (*api.Error) {
+	return nil;
 }
 
-func (m *marathonAdapter) DestroyService(s *api.Service) (bool) {
-	return false;
+func (m *marathonAdapter) DestroyService(id string) (*api.Error) {
+	return nil;
 }
 

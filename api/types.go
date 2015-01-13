@@ -1,5 +1,9 @@
 package api
 
+import (
+	"fmt"
+)
+
 const (
 	StartedStatus = "started"
 	StoppedStatus = "stopped"
@@ -7,11 +11,11 @@ const (
 	)
 
 type PanamaxAdapter interface {
-	GetServices() ([]*Service)
-	GetService(string) (*Service)
-	CreateServices([]*Service) ([]*Response)
-	UpdateService(*Service) (bool)
-	DestroyService(*Service) (bool)
+	GetServices() ([]*Service, *Error)
+	GetService(string) (*Service, *Error)
+	CreateServices([]*Service) ([]*Response, *Error)
+	UpdateService(*Service) (*Error)
+	DestroyService(string) (*Error)
 }
 
 type Service struct {
@@ -52,4 +56,21 @@ type Volume struct {
 type Response struct {
 	Id	      string `json:"id"`
 	CurrrentState string `json:"currentState,omitempty"`
+}
+
+// The serializable Error structure.
+type Error struct {
+	Code    int
+	Message string   `json:"message"`
+}
+
+func (e *Error) Error() string {
+	return fmt.Sprintf("Error(%d): %s", e.Code, e.Message)
+}
+
+// NewError creates an error instance with the specified code and message.
+func NewError(code int, msg string) *Error {
+	return &Error{
+		Code: code,
+		Message: msg }
 }

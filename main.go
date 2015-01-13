@@ -13,6 +13,7 @@ func main() {
 		fmt.Println("Error: Invalid endpoint url. Set env. var. 'MARATHON_ENDPOINT' correctly. ")
 		os.Exit(1)
 	}
-	marathonAdapter := marathon.NewMarathonAdapter(endpoint)
-	api.ListenAndServe(marathonAdapter)
+
+	server := api.NewServer(marathon.NewMarathonAdapter(endpoint))
+	server.Start()
 }
