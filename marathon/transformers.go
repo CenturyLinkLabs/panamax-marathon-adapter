@@ -4,43 +4,46 @@ package marathon
 import (
 	"github.com/centurylinklabs/panamax-marathon-adapter/api"
 	"github.com/jbdalido/gomarathon"
+  //"log"
 )
 
-func convertApps(apps []*gomarathon.Application) ([]*api.Service) {
+func convertToServices(apps []*gomarathon.Application) ([]*api.Service) {
 	services := make([]*api.Service, len(apps))
 
 	for i := range apps {
-		services[i] = convertApp(apps[i])
+		services[i] = convertToService(apps[i])
 	}
 
 	return services
 }
 
-func convertApp(app *gomarathon.Application) (*api.Service) {
+func convertToService(app *gomarathon.Application) (*api.Service) {
 	service := new(api.Service)
 
 	service.CurrentState = api.StartedStatus
 	service.Id = app.ID
+	service.Name = app.ID
 
 	return service
 }
 
-func convertServices(services []*api.Service) ([]*gomarathon.Application) {
+func convertToApps(services []*api.Service) ([]*gomarathon.Application) {
 	apps := make([]*gomarathon.Application, len(services))
 	for i := range services {
-		apps[i] = convertService(services[i])
+		apps[i] = convertToApp(services[i])
 	}
 
 	return apps
 }
 
-func convertService(service *api.Service) (*gomarathon.Application) {
+func convertToApp(service *api.Service) (*gomarathon.Application) {
 	app := new(gomarathon.Application)
 
 	app.ID = service.Name
 	app.Cmd = service.Command
 	app.CPUs = 0.5
 	app.Env = buildEnvMap(service.Environment)
+  // service.DeploymentCount
 	app.Instances = 1
 	app.Mem = 1024
 	app.Container = buildDockerContainer(service)

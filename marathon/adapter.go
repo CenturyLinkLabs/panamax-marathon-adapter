@@ -33,13 +33,13 @@ func NewMarathonAdapter(endpoint string) (*marathonAdapter) {
 func (m *marathonAdapter) GetServices() ([]*api.Service, *api.Error) {
 	response, _ := m.client.ListApps()
 
-	return convertApps(response.Apps), nil
+	return convertToServices(response.Apps), nil
 }
 
 func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 	response, _ := m.client.GetApp(id)
 
-	return convertApp(response.App), nil
+	return convertToService(response.App), nil
 }
 
 func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Response, *api.Error) {
@@ -47,7 +47,7 @@ func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Respon
 	//res := new(api.Response)
 
 	group.ID = "pmx"
-	group.Apps = convertServices(services)
+	group.Apps = convertToApps(services)
 	m.client.CreateGroup(group)
 
 	return make([]*api.Response, 0), nil
