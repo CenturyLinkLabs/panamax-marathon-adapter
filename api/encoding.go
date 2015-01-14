@@ -5,26 +5,16 @@ import (
 	"log"
 )
 
-type jsonEncoder struct{}
-
 // An Encoder implements an encoding format of values to be sent as response to
 // requests on the API endpoints.
 type encoder interface {
-	Encode(v ...interface{}) (string, error)
+	Encode(v ...interface{}) string
 }
 
-// Because `panic`s are caught by martini's Recovery handler, it can be used
-// to return server-side errors (500). Some helpful text message should probably
-// be sent, although not the technical error (which is printed in the log).
-func handleError(data string, err error) string {
-	if err != nil {
-		panic(err)
-	}
-	return data
-}
+type jsonEncoder struct{}
 
 // JsonEncoder is an Encoder that produces JSON-formatted responses.
-func (_ jsonEncoder) Encode(v ...interface{}) (string, error) {
+func (jsonEncoder) Encode(v ...interface{}) string {
 	var data interface{} = v
 	if v == nil {
 		// So that empty results produces `[]` and not `null`
@@ -33,7 +23,9 @@ func (_ jsonEncoder) Encode(v ...interface{}) (string, error) {
 		data = v[0]
 	}
 	b, err := json.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
 	log.Printf("%s", b)
-	return string(b), err
+	return string(b)
 }
-

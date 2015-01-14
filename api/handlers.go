@@ -1,58 +1,74 @@
 package api
 
 import (
-	"fmt"
-	"net/http"
 	"encoding/json"
+	"net/http"
 
 	"github.com/codegangsta/martini"
 )
 
-
-func getServices(enc encoder, adapter PanamaxAdapter) (int, string) {
-
-	res, _ := adapter.GetServices()
-	data := handleError(enc.Encode(res))
-	// Convert the apps that are being returned into Services
-	return http.StatusOK, data
-}
-
-func getService(enc encoder, adapter PanamaxAdapter, params martini.Params) (int, string) {
-
-	id := params["id"]
-	if id == "" {
-		// empty data
-		return http.StatusNotFound, fmt.Sprintf("id %s - cannot be empty", id)
+func sanitizeErrorCode(code int) int {
+	if http.StatusText(code) == "" {
+		return http.StatusInternalServerError
 	}
-	res, _ := adapter.GetService(id)
-
-	//data := utils.HandleError(enc.Encode(res))
-	// Convert the apps that are being returned into Services
-	return http.StatusOK, res.Id
+	return code
 }
 
+func getServices(e encoder, adapter PanamaxAdapter) (int, string) {
+	data, err := adapter.GetServices()
+	if err != nil {
+		return sanitizeErrorCode(err.Code), err.Message
+	}
 
-func createService(enc encoder, adapter PanamaxAdapter, r *http.Request) (int, string) {
+	return http.StatusOK, e.Encode(data)
+}
 
+func getService(e encoder, adapter PanamaxAdapter, params martini.Params) (int, string) {
+	id := params["id"]
+
+	data, err := adapter.GetService(id)
+	if err != nil {
+		return sanitizeErrorCode(err.Code), err.Message
+	}
+
+	return http.StatusOK, e.Encode(data)
+}
+
+func createService(e encoder, adapter PanamaxAdapter, r *http.Request) (int, string) {
 	var services []*Service
-
 	json.NewDecoder(r.Body).Decode(&services)
-	res, _ := adapter.CreateServices(services)
-	data := handleError(enc.Encode(res))
 
-	return http.StatusOK, data
+	res, err := adapter.CreateServices(services)
+	if err != nil {
+		return sanitizeErrorCode(err.Code), err.Message
+	}
+
+	return http.StatusCreated, e.Encode(res)
+
 }
 
-func deleteService(enc encoder, adapter PanamaxAdapter, params martini.Params) (int, string) {
-
+func updateService(adapter PanamaxAdapter, params martini.Params, r *http.Request) (int, string) {
+	service := new(Service)
 	id := params["id"]
-	if id == "" {
-		// empty data
-		return http.StatusNotFound, fmt.Sprintf("id %s - cannot be empty", id)
-	}
-	adapter.DestroyService(id)
 
-	//data := utils.HandleError(enc.Encode(res))
-	// Convert the apps that are being returned into Services
-	return http.StatusOK, ""
+	json.NewDecoder(r.Body).Decode(&service)
+	service.Id = id
+
+	err := adapter.UpdateService(service)
+	if err != nil {
+		return sanitizeErrorCode(err.Code), err.Message
+	}
+
+	return http.StatusNoContent, ""
+}
+
+func deleteService(adapter PanamaxAdapter, params martini.Params) (int, string) {
+	id := params["id"]
+
+	err := adapter.DestroyService(id)
+	if err != nil {
+		return sanitizeErrorCode(err.Code), err.Message
+	}
+
+	return http.StatusNoContent, ""
 }
