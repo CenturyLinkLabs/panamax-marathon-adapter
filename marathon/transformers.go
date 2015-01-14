@@ -1,24 +1,23 @@
 package marathon
 
-
 import (
 	"github.com/centurylinklabs/panamax-marathon-adapter/api"
 	"github.com/jbdalido/gomarathon"
-  	"strings"
+
+	"strings"
 )
 
 type PanamaxServiceConverter interface {
-	convertToServices([]*gomarathon.Application) ([]*api.Service)
-	convertToService(*gomarathon.Application) (*api.Service)
-	convertToApps([]*api.Service) ([]*gomarathon.Application)
-	convertToApp(*api.Service) (*gomarathon.Application)
+	convertToServices([]*gomarathon.Application) []*api.Service
+	convertToService(*gomarathon.Application) *api.Service
+	convertToApps([]*api.Service) []*gomarathon.Application
+	convertToApp(*api.Service) *gomarathon.Application
 }
 
 type MarathonConverter struct {
-
 }
 
-func (c *MarathonConverter) convertToServices(apps []*gomarathon.Application) ([]*api.Service) {
+func (c *MarathonConverter) convertToServices(apps []*gomarathon.Application) []*api.Service {
 	services := make([]*api.Service, len(apps))
 
 	for i := range apps {
@@ -28,7 +27,7 @@ func (c *MarathonConverter) convertToServices(apps []*gomarathon.Application) ([
 	return services
 }
 
-func (c *MarathonConverter) convertToService(app *gomarathon.Application) (*api.Service) {
+func (c *MarathonConverter) convertToService(app *gomarathon.Application) *api.Service {
 	service := new(api.Service)
 
 	service.CurrentState = api.StartedStatus
@@ -38,7 +37,7 @@ func (c *MarathonConverter) convertToService(app *gomarathon.Application) (*api.
 	return service
 }
 
-func (c *MarathonConverter) convertToApps(services []*api.Service) ([]*gomarathon.Application) {
+func (c *MarathonConverter) convertToApps(services []*api.Service) []*gomarathon.Application {
 	apps := make([]*gomarathon.Application, len(services))
 	for i := range services {
 		apps[i] = c.convertToApp(services[i])
@@ -47,14 +46,14 @@ func (c *MarathonConverter) convertToApps(services []*api.Service) ([]*gomaratho
 	return apps
 }
 
-func (c *MarathonConverter) convertToApp(service *api.Service) (*gomarathon.Application) {
+func (c *MarathonConverter) convertToApp(service *api.Service) *gomarathon.Application {
 	app := new(gomarathon.Application)
 
 	app.ID = strings.ToLower(service.Name)
 	app.Cmd = service.Command
 	app.CPUs = 0.5
 	app.Env = buildEnvMap(service.Environment)
-  // service.DeploymentCount
+	// service.DeploymentCount
 	app.Instances = 1
 	app.Mem = 1024
 	app.Container = buildDockerContainer(service)
@@ -62,7 +61,7 @@ func (c *MarathonConverter) convertToApp(service *api.Service) (*gomarathon.Appl
 	return app
 }
 
-func buildEnvMap(env []*api.Environment) (map[string]string) {
+func buildEnvMap(env []*api.Environment) map[string]string {
 	envs := make(map[string]string)
 	for i := range env {
 		envs[env[i].Variable] = env[i].Value
@@ -71,7 +70,7 @@ func buildEnvMap(env []*api.Environment) (map[string]string) {
 	return envs
 }
 
-func buildDockerContainer(service *api.Service) (*gomarathon.Container) {
+func buildDockerContainer(service *api.Service) *gomarathon.Container {
 	container := new(gomarathon.Container)
 	container.Type = "DOCKER"
 
@@ -85,7 +84,7 @@ func buildDockerContainer(service *api.Service) (*gomarathon.Container) {
 	return container
 }
 
-func buildPortMappings(ports []*api.Port) ([]*gomarathon.PortMapping) {
+func buildPortMappings(ports []*api.Port) []*gomarathon.PortMapping {
 	mappings := make([]*gomarathon.PortMapping, len(ports))
 
 	for i := range ports {
@@ -93,13 +92,13 @@ func buildPortMappings(ports []*api.Port) ([]*gomarathon.PortMapping) {
 		mapping.ContainerPort = ports[i].ContainerPort
 		mapping.HostPort = 0
 
-    proto := "tcp"
+		proto := "tcp"
 
-    if ports[i].Protocol != "" {
-      proto = strings.ToLower(ports[i].Protocol)
-    }
+		if ports[i].Protocol != "" {
+			proto = strings.ToLower(ports[i].Protocol)
+		}
 
-    mapping.Protocol = proto
+		mapping.Protocol = proto
 
 		mappings[i] = mapping
 	}

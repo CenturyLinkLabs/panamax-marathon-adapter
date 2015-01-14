@@ -1,33 +1,41 @@
 package api
 
 import (
+	"fmt"
+	"github.com/codegangsta/martini"
 	"log"
 	"net/http"
 	"regexp"
 	"strings"
-	"github.com/codegangsta/martini"
+)
+
+const (
+	VERSION = 1
 )
 
 type martiniServer struct {
 	svr *martini.Martini
 }
 
-func NewServer(adapterInst PanamaxAdapter) (*martiniServer) {
+func NewServer(adapterInst PanamaxAdapter) *martiniServer {
 	s := martini.New()
 
 	// Setup middleware
 	s.Use(martini.Recovery())
 	s.Use(martini.Logger())
 	s.Use(mapEncoder)
-	s.Use(func (c martini.Context, w http.ResponseWriter, r *http.Request) {
+	s.Use(func(c martini.Context, w http.ResponseWriter, r *http.Request) {
 		c.Map(adapterInst)
 	})
 	// Setup routes
 	router := martini.NewRouter()
-	router.Get(`/services`, getServices)
-	router.Get(`/services/:id`, getService)
-	router.Post(`/services`, createService)
-	router.Delete(`/services/:id`, deleteService)
+	router.Group(fmt.Sprintf("/v%d", VERSION), func(r martini.Router) {
+		r.Get(`/services`, getServices)
+		r.Get(`/services/:id`, getService)
+		r.Post(`/services`, createService)
+		r.Delete(`/services/:id`, deleteService)
+	})
+
 	// Add the router action
 	s.Action(router.Handle)
 	server := martiniServer{svr: s}
@@ -37,7 +45,7 @@ func NewServer(adapterInst PanamaxAdapter) (*martiniServer) {
 
 func (m *martiniServer) Start() {
 	err := http.ListenAndServe(":8001", m.svr)
-	if	err != nil {
+	if err != nil {
 		log.Fatal(err)
 	}
 }

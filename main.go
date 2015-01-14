@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"github.com/centurylinklabs/panamax-marathon-adapter/api"
 	"github.com/centurylinklabs/panamax-marathon-adapter/marathon"
+	"os"
 )
 
 func main() {

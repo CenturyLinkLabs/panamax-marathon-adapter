@@ -30,7 +30,7 @@ type marathonAdapter struct {
 	conv   PanamaxServiceConverter
 }
 
-func NewMarathonAdapter(endpoint string) (*marathonAdapter) {
+func NewMarathonAdapter(endpoint string) *marathonAdapter {
 	adapter := new(marathonAdapter)
 	adapter.client = newClient(endpoint)
 	adapter.conv = new(MarathonConverter)
@@ -57,7 +57,7 @@ func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 	return m.conv.convertToService(response.App), apiErr
 }
 
-func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Response, *api.Error) {
+func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Service, *api.Error) {
 	var apiErr *api.Error
 	group := new(gomarathon.Group)
 
@@ -68,14 +68,13 @@ func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Respon
 	if err != nil {
 		apiErr = api.NewError(0, err.Error())
 	}
-	return make([]*api.Response, 0), apiErr
+	return make([]*api.Service, 0), apiErr
 }
 
-func (m *marathonAdapter) UpdateService(s *api.Service) (*api.Error) {
-	return nil;
+func (m *marathonAdapter) UpdateService(s *api.Service) *api.Error {
+	return nil
 }
 
-func (m *marathonAdapter) DestroyService(id string) (*api.Error) {
-	return nil;
+func (m *marathonAdapter) DestroyService(id string) *api.Error {
+	return nil
 }
-

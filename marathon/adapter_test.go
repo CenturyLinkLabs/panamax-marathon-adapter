@@ -1,11 +1,11 @@
 package marathon
 
 import (
-	"testing"
 	"github.com/centurylinklabs/panamax-marathon-adapter/api"
 	"github.com/jbdalido/gomarathon"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 // Mock the gomarathonClient type that implements the gomarathonClientAbstractor interface
@@ -13,7 +13,7 @@ type mockClient struct {
 	mock.Mock
 }
 
-func (c *mockClient) ListApps()(*gomarathon.Response, error) {
+func (c *mockClient) ListApps() (*gomarathon.Response, error) {
 	args := c.Mock.Called()
 	if len(args) == 1 {
 		return args.Get(0).(*gomarathon.Response), nil
@@ -45,26 +45,25 @@ type mockConverter struct {
 	mock.Mock
 }
 
-func (c *mockConverter ) convertToServices(apps []*gomarathon.Application) ([]*api.Service) {
+func (c *mockConverter) convertToServices(apps []*gomarathon.Application) []*api.Service {
 	args := c.Mock.Called(apps)
 	return args.Get(0).([]*api.Service)
 }
 
-func (c *mockConverter) convertToService(app *gomarathon.Application) (*api.Service) {
+func (c *mockConverter) convertToService(app *gomarathon.Application) *api.Service {
 	args := c.Mock.Called(app)
 	return args.Get(0).(*api.Service)
 }
 
-func (c *mockConverter) convertToApps(services []*api.Service) ([]*gomarathon.Application) {
+func (c *mockConverter) convertToApps(services []*api.Service) []*gomarathon.Application {
 	args := c.Mock.Called(services)
 	return args.Get(0).([]*gomarathon.Application)
 }
 
-func (c *mockConverter) convertToApp(service *api.Service) (*gomarathon.Application) {
+func (c *mockConverter) convertToApp(service *api.Service) *gomarathon.Application {
 	args := c.Mock.Called(service)
 	return args.Get(0).(*gomarathon.Application)
 }
-
 
 // Tests
 func TestMarathonAdapterImplementsPanamaxAdapterInterface(t *testing.T) {
@@ -166,5 +165,3 @@ func TestSuccessfulCreateServices(t *testing.T) {
 	testConverter.AssertExpectations(t)
 
 }
-
-
