@@ -19,38 +19,56 @@ func newClient(endpoint string) *gomarathon.Client {
 	return c
 }
 
+type gomarathonClientAbstractor interface {
+	ListApps() (*gomarathon.Response, error)
+	GetApp(string) (*gomarathon.Response, error)
+	CreateGroup(*gomarathon.Group) (*gomarathon.Response, error)
+}
+
 type marathonAdapter struct {
-	client *gomarathon.Client
+	client gomarathonClientAbstractor
+	conv   PanamaxServiceConverter
 }
 
 func NewMarathonAdapter(endpoint string) (*marathonAdapter) {
 	adapter := new(marathonAdapter)
 	adapter.client = newClient(endpoint)
+	adapter.conv = new(MarathonConverter)
 	return adapter
 }
 
-
 func (m *marathonAdapter) GetServices() ([]*api.Service, *api.Error) {
-	response, _ := m.client.ListApps()
+	var apiErr *api.Error
 
-	return convertToServices(response.Apps), nil
+	response, err := m.client.ListApps()
+	if err != nil {
+		apiErr = api.NewError(0, err.Error())
+	}
+	return m.conv.convertToServices(response.Apps), apiErr
 }
 
 func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
-	response, _ := m.client.GetApp(id)
+	var apiErr *api.Error
 
-	return convertToService(response.App), nil
+	response, err := m.client.GetApp(id)
+	if err != nil {
+		apiErr = api.NewError(0, err.Error())
+	}
+	return m.conv.convertToService(response.App), apiErr
 }
 
 func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Response, *api.Error) {
+	var apiErr *api.Error
 	group := new(gomarathon.Group)
-	//res := new(api.Response)
 
 	group.ID = "pmx"
-	group.Apps = convertToApps(services)
-	m.client.CreateGroup(group)
+	group.Apps = m.conv.convertToApps(services)
 
-	return make([]*api.Response, 0), nil
+	_, err := m.client.CreateGroup(group)
+	if err != nil {
+		apiErr = api.NewError(0, err.Error())
+	}
+	return make([]*api.Response, 0), apiErr
 }
 
 func (m *marathonAdapter) UpdateService(s *api.Service) (*api.Error) {

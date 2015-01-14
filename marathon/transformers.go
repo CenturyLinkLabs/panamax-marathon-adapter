@@ -4,20 +4,31 @@ package marathon
 import (
 	"github.com/centurylinklabs/panamax-marathon-adapter/api"
 	"github.com/jbdalido/gomarathon"
-  "strings"
+  	"strings"
 )
 
-func convertToServices(apps []*gomarathon.Application) ([]*api.Service) {
+type PanamaxServiceConverter interface {
+	convertToServices([]*gomarathon.Application) ([]*api.Service)
+	convertToService(*gomarathon.Application) (*api.Service)
+	convertToApps([]*api.Service) ([]*gomarathon.Application)
+	convertToApp(*api.Service) (*gomarathon.Application)
+}
+
+type MarathonConverter struct {
+
+}
+
+func (c *MarathonConverter) convertToServices(apps []*gomarathon.Application) ([]*api.Service) {
 	services := make([]*api.Service, len(apps))
 
 	for i := range apps {
-		services[i] = convertToService(apps[i])
+		services[i] = c.convertToService(apps[i])
 	}
 
 	return services
 }
 
-func convertToService(app *gomarathon.Application) (*api.Service) {
+func (c *MarathonConverter) convertToService(app *gomarathon.Application) (*api.Service) {
 	service := new(api.Service)
 
 	service.CurrentState = api.StartedStatus
@@ -27,16 +38,16 @@ func convertToService(app *gomarathon.Application) (*api.Service) {
 	return service
 }
 
-func convertToApps(services []*api.Service) ([]*gomarathon.Application) {
+func (c *MarathonConverter) convertToApps(services []*api.Service) ([]*gomarathon.Application) {
 	apps := make([]*gomarathon.Application, len(services))
 	for i := range services {
-		apps[i] = convertToApp(services[i])
+		apps[i] = c.convertToApp(services[i])
 	}
 
 	return apps
 }
 
-func convertToApp(service *api.Service) (*gomarathon.Application) {
+func (c *MarathonConverter) convertToApp(service *api.Service) (*gomarathon.Application) {
 	app := new(gomarathon.Application)
 
 	app.ID = strings.ToLower(service.Name)

@@ -7,12 +7,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var mConverter = new(MarathonConverter)
+
 func TestConvertToServices(t *testing.T) {
 
   app1 := gomarathon.Application{ID: "foo"}
   app2 := gomarathon.Application{ID: "bar"}
 
-  services := convertToServices([]*gomarathon.Application{&app1, &app2})
+  services := mConverter.convertToServices([]*gomarathon.Application{&app1, &app2})
 
   assert.Equal(t, 2, len(services))
 }
@@ -21,11 +23,10 @@ func TestConvertToService(t *testing.T) {
 
   application := gomarathon.Application{ID: "foo"}
 
-  service := convertToService(&application)
+  service := mConverter.convertToService(&application)
 
   assert.Equal(t, "foo", service.Name)
   assert.Equal(t, "foo", service.Id)
-
 }
 
 func TestConvertToApps(t *testing.T) {
@@ -33,7 +34,7 @@ func TestConvertToApps(t *testing.T) {
   service1 := api.Service{Name: "foo"}
   service2 := api.Service{Name: "bar"}
 
-  apps := convertToApps([]*api.Service{&service1, &service2})
+  apps := mConverter.convertToApps([]*api.Service{&service1, &service2})
 
   assert.Equal(t, 2, len(apps))
 }
@@ -42,12 +43,11 @@ func TestConvertToApp(t *testing.T) {
 
   service := api.Service{Name: "FOO", Command: "echo"}
 
-  app := convertToApp(&service)
+  app := mConverter.convertToApp(&service)
 
   assert.Equal(t, "foo", app.ID)
   assert.Equal(t, "echo", app.Cmd)
   assert.Equal(t, 0.5, app.CPUs)
-
 }
 
 func TestBuildEnvMap(t *testing.T) {
@@ -68,7 +68,6 @@ func TestBuildDockerContainer(t *testing.T) {
   portMappings := buildPortMappings(service.Ports)
 
   assert.Equal(t, container.Docker.PortMappings, portMappings)
-
 }
 
 func TestBuildPortMappings(t *testing.T) {
@@ -84,5 +83,4 @@ func TestBuildPortMappings(t *testing.T) {
   assert.Equal(t, 0, mappings[0].HostPort)
   assert.Equal(t, "tcp", mappings[0].Protocol)
   assert.Equal(t, "udp", mappings[2].Protocol)
-
 }
