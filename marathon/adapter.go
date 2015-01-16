@@ -23,6 +23,7 @@ type gomarathonClientAbstractor interface {
 	ListApps() (*gomarathon.Response, error)
 	GetApp(string) (*gomarathon.Response, error)
 	CreateGroup(*gomarathon.Group) (*gomarathon.Response, error)
+	DeleteApp(string) (*gomarathon.Response, error)
 }
 
 type marathonAdapter struct {
@@ -75,6 +76,12 @@ func (m *marathonAdapter) UpdateService(s *api.Service) *api.Error {
 	return nil
 }
 
-func (m *marathonAdapter) DestroyService(id string) *api.Error {
-	return nil
+func (m *marathonAdapter) DestroyService(id string) (*api.Error) {
+	var apiErr *api.Error
+
+	_, err := m.client.DeleteApp(id)
+	if err != nil {
+		apiErr = api.NewError(0, err.Error())
+	}
+	return apiErr;
 }
