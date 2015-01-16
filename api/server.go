@@ -35,6 +35,7 @@ func NewServer(adapterInst PanamaxAdapter) *martiniServer {
 		r.Post(`/services`, createServices)
 		r.Put(`/services/:id`, updateService)
 		r.Delete(`/services/:id`, deleteService)
+		r.Get(`/metadata`, getMetadata)
 	})
 
 	// Add the router action

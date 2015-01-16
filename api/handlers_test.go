@@ -90,6 +90,12 @@ func TestSuccessfulDeleteService(t *testing.T) {
 	assert.Equal(t, http.StatusNoContent, code)
 }
 
+func TestSuccessfulGetMetadata(t *testing.T) {
+	code, _ := getMetadata(testEncoder, newMockAdapter(200, ""))
+
+	assert.Equal(t, http.StatusOK, code)
+}
+
 func TestGetServicesError(t *testing.T) {
 	adapter := newMockAdapter(500, "internal error")
 	code, _ := getServices(testEncoder, adapter)

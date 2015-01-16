@@ -72,6 +72,12 @@ func TestDeleteServiceRoute(t *testing.T) {
 	assert.Equal(t, http.StatusNoContent, res.StatusCode)
 }
 
+func TestGetMetadataRoute(t *testing.T) {
+	res, _ := http.Get(fmt.Sprintf("%s/v1/metadata", testServer.URL))
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+}
+
 func TestNoRoute(t *testing.T) {
 	res, _ := http.Get(fmt.Sprintf("%s/v1/nothere", testServer.URL))
 
