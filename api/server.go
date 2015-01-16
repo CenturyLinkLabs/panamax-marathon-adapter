@@ -32,7 +32,8 @@ func NewServer(adapterInst PanamaxAdapter) *martiniServer {
 	router.Group(fmt.Sprintf("/v%d", VERSION), func(r martini.Router) {
 		r.Get(`/services`, getServices)
 		r.Get(`/services/:id`, getService)
-		r.Post(`/services`, createService)
+		r.Post(`/services`, createServices)
+		r.Put(`/services/:id`, updateService)
 		r.Delete(`/services/:id`, deleteService)
 	})
 

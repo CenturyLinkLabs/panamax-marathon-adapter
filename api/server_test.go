@@ -37,26 +37,34 @@ func (NoOPAdapter) DestroyService(string) *Error {
 	return nil
 }
 
-func TestGetServices(t *testing.T) {
+func TestGetServicesRoute(t *testing.T) {
 	res, _ := http.Get(fmt.Sprintf("%s/v1/services", testServer.URL))
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 }
 
-func TestGetService(t *testing.T) {
+func TestGetServiceRoute(t *testing.T) {
 	res, _ := http.Get(fmt.Sprintf("%s/v1/services/1", testServer.URL))
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 }
 
-func TestPostService(t *testing.T) {
+func TestPostServiceRoute(t *testing.T) {
 	var body io.Reader
 	res, _ := http.Post(fmt.Sprintf("%s/v1/services", testServer.URL), "", body)
 
 	assert.Equal(t, http.StatusCreated, res.StatusCode)
 }
 
-func TestDeleteService(t *testing.T) {
+func TestPutServiceRoute(t *testing.T) {
+	var body io.Reader
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("%s/v1/services/1", testServer.URL), body)
+	res, _ := http.DefaultClient.Do(req)
+
+	assert.Equal(t, http.StatusNotImplemented, res.StatusCode)
+}
+
+func TestDeleteServiceRoute(t *testing.T) {
 	var body io.Reader
 	req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/services/1", testServer.URL), body)
 	res, _ := http.DefaultClient.Do(req)
