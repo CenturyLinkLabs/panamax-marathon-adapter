@@ -30,7 +30,7 @@ func (c *MarathonConverter) convertToServices(apps []*gomarathon.Application) []
 func (c *MarathonConverter) convertToService(app *gomarathon.Application) *api.Service {
 	service := new(api.Service)
 
-	service.CurrentState = api.StartedStatus
+	service.ActualState = api.StartedStatus
 	service.Id = app.ID
 	service.Name = app.ID
 

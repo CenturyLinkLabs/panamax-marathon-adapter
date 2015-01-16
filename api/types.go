@@ -28,8 +28,8 @@ type Service struct {
 	Expose       []uint16       `json:"expose,omitempty"`
 	Environment  []*Environment `json:"environment,omitempty"`
 	Volumes      []*Volume      `json:"volumes,omitempty"`
-	DesiredState string         `json:"desiredState,omitempty"`
-	CurrentState string         `json:"currentState,omitempty"`
+	VolumesFrom  []*VolumesFrom `json:"volumes_from,omitempty"`
+	ActualState  string         `json:"actualState,omitempty"`
 }
 
 type Link struct {
@@ -51,6 +51,15 @@ type Environment struct {
 type Volume struct {
 	HostPath      string `json:"hostPath"`
 	ContainerPath string `json:"containerPath"`
+}
+
+type VolumesFrom struct {
+	Name string `json:"name"`
+}
+
+type Metadata struct {
+	Version string `json:"version"`
+	Type    string `json:"type"`
 }
 
 // The serializable Error structure.
