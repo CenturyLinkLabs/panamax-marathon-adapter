@@ -34,7 +34,7 @@ func getService(e encoder, adapter PanamaxAdapter, params martini.Params) (int, 
 	return http.StatusOK, e.Encode(data)
 }
 
-func createService(e encoder, adapter PanamaxAdapter, r *http.Request) (int, string) {
+func createServices(e encoder, adapter PanamaxAdapter, r *http.Request) (int, string) {
 	var services []*Service
 	json.NewDecoder(r.Body).Decode(&services)
 
@@ -44,22 +44,10 @@ func createService(e encoder, adapter PanamaxAdapter, r *http.Request) (int, str
 	}
 
 	return http.StatusCreated, e.Encode(res)
-
 }
 
 func updateService(adapter PanamaxAdapter, params martini.Params, r *http.Request) (int, string) {
-	service := new(Service)
-	id := params["id"]
-
-	json.NewDecoder(r.Body).Decode(&service)
-	service.Id = id
-
-	err := adapter.UpdateService(service)
-	if err != nil {
-		return sanitizeErrorCode(err.Code), err.Message
-	}
-
-	return http.StatusNoContent, ""
+	return http.StatusNotImplemented, ""
 }
 
 func deleteService(adapter PanamaxAdapter, params martini.Params) (int, string) {

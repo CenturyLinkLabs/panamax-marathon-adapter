@@ -63,14 +63,21 @@ func TestSuccessfulGetService(t *testing.T) {
 	assert.Equal(t, http.StatusOK, code)
 }
 
+func TestSuccessfulCreateServices(t *testing.T) {
+	req, _ := http.NewRequest("POST", "http://localhost", strings.NewReader("{}"))
+	code, _ := createServices(testEncoder, newMockAdapter(201, ""), req)
+
+	assert.Equal(t, http.StatusCreated, code)
+}
+
 func TestSuccessfulUpdateService(t *testing.T) {
 	req, _ := http.NewRequest("PUT", "http://localhost", strings.NewReader("{}"))
 	params := map[string]string{
 		"id": "test",
 	}
-	code, _ := updateService(newMockAdapter(204, ""), params, req)
+	code, _ := updateService(newMockAdapter(501, ""), params, req)
 
-	assert.Equal(t, http.StatusNoContent, code)
+	assert.Equal(t, http.StatusNotImplemented, code)
 }
 
 func TestSuccessfulDeleteService(t *testing.T) {
@@ -90,7 +97,7 @@ func TestGetServicesError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, code)
 }
 
-func TestServiceNotFound(t *testing.T) {
+func TestGetServiceNotFound(t *testing.T) {
 	adapter := newMockAdapter(404, "service not found")
 	params := map[string]string{
 		"id": "test",
@@ -100,33 +107,14 @@ func TestServiceNotFound(t *testing.T) {
 
 	assert.Equal(t, http.StatusNotFound, code)
 	assert.Equal(t, "service not found", body)
-
 }
 
-func TestUpdateServiceNotFound(t *testing.T) {
-	req, _ := http.NewRequest("PUT", "http://localhost", strings.NewReader("{}"))
-	adapter := newMockAdapter(404, "service not found")
-	params := map[string]string{
-		"id": "test",
-	}
+func TestCreateServicesError(t *testing.T) {
+	req, _ := http.NewRequest("POST", "http://localhost", strings.NewReader("{}"))
+	code, body := createServices(testEncoder, newMockAdapter(500, "internal error"), req)
 
-	code, body := updateService(adapter, params, req)
-
-	assert.Equal(t, http.StatusNotFound, code)
-	assert.Equal(t, "service not found", body)
-}
-
-func TestUpdateServiceInvalidState(t *testing.T) {
-	req, _ := http.NewRequest("PUT", "http://localhost", strings.NewReader("{}"))
-	adapter := newMockAdapter(400, "invalid service state")
-	params := map[string]string{
-		"id": "test",
-	}
-
-	code, body := updateService(adapter, params, req)
-
-	assert.Equal(t, http.StatusBadRequest, code)
-	assert.Equal(t, "invalid service state", body)
+	assert.Equal(t, http.StatusInternalServerError, code)
+	assert.Equal(t, "internal error", body)
 }
 
 func TestDeleteServiceNotFound(t *testing.T) {
