@@ -40,13 +40,14 @@ func TestConvertToApps(t *testing.T) {
 
 func TestConvertToApp(t *testing.T) {
 
-	service := api.Service{Name: "FOO", Command: "echo"}
+	service := api.Service{Name: "FOO", Command: "echo", Deployment: {Count: 1}}
 
 	app := mConverter.convertToApp(&service)
 
 	assert.Equal(t, "foo", app.ID)
 	assert.Equal(t, "echo", app.Cmd)
 	assert.Equal(t, 0.5, app.CPUs)
+	assert.Equal(t, 1, app.Instances)
 
 }
 

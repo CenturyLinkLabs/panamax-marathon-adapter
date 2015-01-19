@@ -95,17 +95,18 @@ func TestMarshalService(t *testing.T) {
 
 	jsonTest, _ := json.Marshal(service)
 
-	assert.Equal(t, `{"id":"myService","name":"myServiceName","source":"centurylink/service","command":"/run.sh","links":[{"name":"db","alias":"db_1"}],"ports":[{"hostPort":8080,"containerPort":8080}],"expose":[8080,9000],"environment":[{"variable":"start","value":"end"}],"volumes":[{"hostPath":"foo","containerPath":"bar"}]}`, string(jsonTest))
+	assert.Equal(t, `{"id":"myService","name":"myServiceName","source":"centurylink/service","command":"/run.sh","links":[{"name":"db","alias":"db_1"}],"ports":[{"hostPort":8080,"containerPort":8080}],"expose":[8080,9000],"environment":[{"variable":"start","value":"end"}],"volumes":[{"hostPath":"foo","containerPath":"bar"}],"deployment":{}}`, string(jsonTest))
 }
 
 func TestUnmarshalService(t *testing.T) {
 
 	service := &Service{}
-	str := `{"id":"myService","name":"myServiceName","source":"centurylink/service","command":"/run.sh","links":[{"name":"db","alias":"db_1"}],"ports":[{"hostPort":8080,"containerPort":8080}],"expose":[8080,9000],"environment":[{"variable":"start","value":"end"}],"volumes":[{"hostPath":"foo","containerPath":"bar"}]}`
+	str := `{"id":"myService","name":"myServiceName","source":"centurylink/service","command":"/run.sh","links":[{"name":"db","alias":"db_1"}],"ports":[{"hostPort":8080,"containerPort":8080}],"expose":[8080,9000],"environment":[{"variable":"start","value":"end"}],"volumes":[{"hostPath":"foo","containerPath":"bar"}],"deployment":{"count":1}}`
 	json.Unmarshal([]byte(str), &service)
 
 	assert.Equal(t, "myService", service.Id)
 	assert.Equal(t, "myServiceName", service.Name)
 	assert.Equal(t, 8080, service.Ports[0].ContainerPort)
 	assert.Equal(t, "bar", service.Volumes[0].ContainerPath)
+  assert.Equal(t, 1, service.Deployment.Count)
 }

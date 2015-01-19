@@ -53,8 +53,7 @@ func (c *MarathonConverter) convertToApp(service *api.Service) *gomarathon.Appli
 	app.Cmd = service.Command
 	app.CPUs = 0.5
 	app.Env = buildEnvMap(service.Environment)
-	// service.DeploymentCount
-	app.Instances = 1
+	app.Instances = service.Deployment.Count
 	app.Mem = 1024
 	app.Container = buildDockerContainer(service)
 
