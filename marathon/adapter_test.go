@@ -49,6 +49,15 @@ func (c *mockClient) DeleteApp(id string) (*gomarathon.Response, error) {
 	}
 }
 
+func (c *mockClient) DeleteGroup(id string) (*gomarathon.Response, error) {
+	args := c.Mock.Called(id)
+	if len(args) == 1 {
+		return args.Get(0).(*gomarathon.Response), nil
+	} else {
+		return args.Get(0).(*gomarathon.Response), args.Error(1)
+	}
+}
+
 // Mock the MarathonConverter type that implements the PanamaxConverter interface
 type mockConverter struct {
 	mock.Mock
@@ -93,6 +102,7 @@ func setup() (*mockClient, *mockConverter, *marathonAdapter) {
 	adapter := new(marathonAdapter)
 	adapter.client = testClient
 	adapter.conv = testConverter
+	adapter.generateUID = func() string { return "pmx" }
 
 	return testClient, testConverter, adapter
 }
@@ -132,7 +142,7 @@ func TestSuccessfulGetService(t *testing.T) {
 	service := &api.Service{Id: "foo", Name: "foo"}
 
 	// set expectations
-	testClient.On("GetApp", "foo").Return(resp)
+	testClient.On("GetApp", "/foo").Return(resp)
 	testConverter.On("convertToService", resp.App).Return(service)
 
 	// call the code to be tested
@@ -183,7 +193,8 @@ func TestSuccessfulDeleteService(t *testing.T) {
 	resp := new(gomarathon.Response)
 
 	// set expectations
-	testClient.On("DeleteApp", "foo").Return(resp)
+	testClient.On("DeleteApp", "/foo").Return(resp)
+	testClient.On("DeleteGroup", "").Return(resp)
 
 	// call the code to be tested
 	err := adapter.DestroyService("foo")

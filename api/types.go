@@ -30,9 +30,11 @@ type Service struct {
 	Volumes      []*Volume      `json:"volumes,omitempty"`
 	VolumesFrom  []*VolumesFrom `json:"volumes_from,omitempty"`
 	ActualState  string         `json:"actualState,omitempty"`
-	Deployment   struct {
-		Count int `json:"count,omitempty"`
-	} `json:"deployment,omitempty"`
+	Deployment   Deployment     `json:"deployment,omitempty"`
+}
+
+type Deployment struct {
+	Count int `json:"count,omitempty"`
 }
 
 type Link struct {

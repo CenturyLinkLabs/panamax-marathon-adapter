@@ -8,6 +8,7 @@ ADD . /go/src/github.com/centurylinklabs/panamax-marathon-adapter
 # Build dependencies
 RUN go get github.com/codegangsta/martini
 RUN go get github.com/jbdalido/gomarathon
+RUN go get github.com/satori/go.uuid
 
 # Build adapter
 RUN go install github.com/centurylinklabs/panamax-marathon-adapter

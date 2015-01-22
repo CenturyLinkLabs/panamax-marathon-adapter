@@ -20,11 +20,11 @@ func TestConvertToServices(t *testing.T) {
 
 func TestConvertToService(t *testing.T) {
 
-	application := gomarathon.Application{ID: "foo"}
+	application := gomarathon.Application{ID: "/foo"}
 
 	service := mConverter.convertToService(&application)
 
-	assert.Equal(t, "foo", service.Name)
+	assert.Equal(t, "/foo", service.Name)
 	assert.Equal(t, "foo", service.Id)
 }
 
@@ -40,7 +40,7 @@ func TestConvertToApps(t *testing.T) {
 
 func TestConvertToApp(t *testing.T) {
 
-	service := api.Service{Name: "FOO", Command: "echo", Deployment: {Count: 5}}
+	service := api.Service{Name: "FOO", Command: "echo", Deployment: api.Deployment{Count: 5}}
 	app := mConverter.convertToApp(&service)
 
   service1 := api.Service{Name: "FOO", Command: "echo"}

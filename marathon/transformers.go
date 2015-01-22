@@ -1,10 +1,10 @@
 package marathon
 
 import (
+	"strings"
+
 	"github.com/centurylinklabs/panamax-marathon-adapter/api"
 	"github.com/jbdalido/gomarathon"
-
-	"strings"
 )
 
 type PanamaxServiceConverter interface {
@@ -31,7 +31,7 @@ func (c *MarathonConverter) convertToService(app *gomarathon.Application) *api.S
 	service := new(api.Service)
 
 	service.ActualState = api.StartedStatus
-	service.Id = app.ID
+	service.Id = (strings.Replace(app.ID, "/", ".", -1))[1:]
 	service.Name = app.ID
 
 	return service
