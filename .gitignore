@@ -22,6 +22,8 @@ _cgo_export.*
 
 _testmain.go
 
+panamax-marathon-adapter
+
 *.exe
 *.test
 *.prof
