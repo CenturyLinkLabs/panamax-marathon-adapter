@@ -49,11 +49,17 @@ func (c *MarathonConverter) convertToApps(services []*api.Service) []*gomarathon
 func (c *MarathonConverter) convertToApp(service *api.Service) *gomarathon.Application {
 	app := new(gomarathon.Application)
 
+  // set count to 1 for services with no deployment count specifier
+  var count int = 1;
+  if service.Deployment.Count > 0 {
+    count = service.Deployment.Count
+  }
+
 	app.ID = strings.ToLower(service.Name)
 	app.Cmd = service.Command
 	app.CPUs = 0.5
 	app.Env = buildEnvMap(service.Environment)
-	app.Instances = service.Deployment.Count
+	app.Instances = count
 	app.Mem = 1024
 	app.Container = buildDockerContainer(service)
 
