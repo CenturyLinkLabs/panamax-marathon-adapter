@@ -45,39 +45,33 @@ func noOp(*job) int {
 }
 
 func handleJobs(jobs chan *job) {
-	var state stateFn
+	var currentTask stateFn
+
+  // pull from jobs channel
 	j := <-jobs
 	fmt.Println("Before Switch: ", j.currentState)
-	switch (j.currentState) {
-		case DONE:
-			return
-		case PRE:
-			state = j.preFn
-			break
-		case DEPLOY:
-			state = j.deployFn
-			break
-		case POST:
-			state = j.postFn
-			break
-		default:
-			state = noOp
 
-	}
+  // if it's not done, find the task
+  if j.currentState < DONE {
+    currentTask = j.stateFns[j.currentState]
+  } else {
+    // return because the task is done
+    fmt.Println("it's deleted from the channel")
+    return
+  }
 
-	if (state(j) == OK) {
+  // execute current task, check to move ahead
+	if (currentTask(j) == OK) {
 		j.currentState +=1
+  	fmt.Println("After Switch: ", j.currentState)
 	}
 
 	fmt.Println("put it back")
-
 	job_channel <- j
 }
 
 type job struct {
-	preFn stateFn
-	deployFn stateFn
-	postFn stateFn
+	stateFns [3]stateFn
 	currentState int
 	application gomarathon.Application
 	submitted time.Time

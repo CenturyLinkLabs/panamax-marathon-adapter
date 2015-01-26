@@ -13,9 +13,9 @@ func TestJobStates(t *testing.T) {
 
 	// analyze -- create the job struct list
 	var testJob job
-	testJob.preFn = preCondition
-	testJob.deployFn = deploy
-	testJob.postFn = postCondition
+  testJob.stateFns[0] = preCondition
+	testJob.stateFns[1] = deploy
+	testJob.stateFns[2] = postCondition
 
 	myApp := new(app)
 	myApp.jobs = []job{testJob}
