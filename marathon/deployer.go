@@ -4,16 +4,6 @@ import (
 	"log"
 )
 
-const (
-	OK = 0
-	WAIT = 1
-	FAIL = 2
-
-	PRE = 0
-	DEPLOY = 1
-	POST = 2
-	DONE = 3
-)
 
 func GroupDeployment(done chan bool, appchan chan *app, myGroup *group) {
 
@@ -24,7 +14,7 @@ func GroupDeployment(done chan bool, appchan chan *app, myGroup *group) {
 	}
 
     	for {
-		if (myGroup.Done()) {
+		if (myGroup.Done() || myGroup.Failed()) {
 			done <- true
 		}
 	}
@@ -36,9 +26,10 @@ func deployApp(apps chan *app) {
 
 	for {
 		log.Printf("Job: %s", j.name)
-		log.Printf("Before Switch: %d", j.currentState)
 		switch (j.currentState) {
 			case DONE:
+				return
+			case FAILED:
 				return
 			case PRE:
 				state = j.preFn
@@ -54,8 +45,15 @@ func deployApp(apps chan *app) {
 
 		}
 
-		if (state(j) == OK) {
-			j.currentState +=1
+		status := state(j)
+
+		switch (status) {
+			case OK:
+				j.currentState +=1
+				break
+			case FAIL:
+				j.currentState = FAILED
+				return
 		}
 	}
 }

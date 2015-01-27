@@ -6,6 +6,18 @@ import (
 	"github.com/jbdalido/gomarathon"
 )
 
+const (
+	FAILED = -1
+	PRE = 0
+	DEPLOY = 1
+	POST = 2
+	DONE = 3
+
+	OK = 0
+	WAIT = 1
+	FAIL = 2
+)
+
 
 type stateFn func(*app) int
 
@@ -19,11 +31,18 @@ type app struct {
 	submitted time.Time
 }
 
-func (j *app) complete() bool {
-	if (j.currentState >= DONE) {
+func (a *app) complete() bool {
+	if (a.currentState >= DONE) {
 		return true
 	}
 
+	return false
+}
+
+func (a *app) failed() bool {
+	if (a.currentState == FAILED) {
+		return true
+	}
 	return false
 }
 
@@ -39,4 +58,13 @@ func (g *group) Done() bool {
     	}
 
 	return completed
+}
+
+func (g *group) Failed() bool {
+	failed := true
+	for _, app := range g.apps {
+		failed = failed && app.failed()
+    	}
+
+	return failed
 }
