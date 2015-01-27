@@ -6,28 +6,29 @@ import (
 	"time"
 	"math/rand"
 
+	"github.com/jbdalido/gomarathon"
 	"github.com/stretchr/testify/assert"
 )
 
-func preCondition(*app) int {
+func preCondition(*gomarathon.Application, *context) int {
 	fmt.Println("preCondition Slow")
 	time.Sleep(time.Duration(rand.Intn(10) * 100) * time.Millisecond)
 	fmt.Println("preCondition After")
 	return OK
 }
 
-func postCondition(*app) int {
+func postCondition(*gomarathon.Application, *context) int {
 	fmt.Println("postCondition")
 	return OK
 }
 
-func deploy(*app) int {
+func deploy(*gomarathon.Application, *context) int {
 	time.Sleep(time.Duration(rand.Intn(100) * 100) * time.Millisecond)
 	fmt.Println("deploy")
 	return OK
 }
 
-func deployFail(*app) int {
+func deployFail(*gomarathon.Application, *context) int {
 	fmt.Println("failed deployment")
 	return FAIL
 }

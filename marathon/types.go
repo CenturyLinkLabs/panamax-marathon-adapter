@@ -19,7 +19,23 @@ const (
 )
 
 
-type stateFn func(*app) int
+type stateFn func(*gomarathon.Application, *context) int
+
+type context struct {
+	values map[string]map[string]string
+}
+
+func (c *context) AddKey(key string, values map[string]string) {
+	c.values[key] = values
+}
+
+
+func NewContext() context {
+	var ctx context
+	ctx.values = make(map[string]map[string]string)
+
+	return ctx
+}
 
 type app struct {
 	name string

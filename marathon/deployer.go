@@ -2,15 +2,18 @@ package marathon
 
 import (
 	"log"
+
+	"github.com/jbdalido/gomarathon"
 )
 
 
 func GroupDeployment(done chan bool, appchan chan *app, myGroup *group) {
-
 	log.Printf("Group Deployment started")
+	var ctx = NewContext()
+
 	for i:=0; i < len(myGroup.apps); i++ {
 		appchan <- &(myGroup.apps[i])
-		go deployApp(appchan)
+		go deployApp(appchan, &ctx)
 	}
 
     	for {
@@ -20,39 +23,39 @@ func GroupDeployment(done chan bool, appchan chan *app, myGroup *group) {
 	}
 }
 
-func deployApp(apps chan *app) {
+func deployApp(apps chan *app, ctx *context) {
 	var state stateFn
-	j := <-apps
+	app := <-apps
 
 	for {
-		log.Printf("Job: %s", j.name)
-		switch (j.currentState) {
+		log.Printf("Job: %s", app.name)
+		switch (app.currentState) {
 			case DONE:
 				return
 			case FAILED:
 				return
 			case PRE:
-				state = j.preFn
+				state = app.preFn
 				break
 			case DEPLOY:
-				state = j.deployFn
+				state = app.deployFn
 				break
 			case POST:
-				state = j.postFn
+				state = app.postFn
 				break
 			default:
-				state = func(*app) int { return OK }
+				state = func(*gomarathon.Application, *context) int { return OK }
 
 		}
 
-		status := state(j)
+		status := state(app.application, ctx)
 
 		switch (status) {
 			case OK:
-				j.currentState +=1
+				app.currentState +=1
 				break
 			case FAIL:
-				j.currentState = FAILED
+				app.currentState = FAILED
 				return
 		}
 	}

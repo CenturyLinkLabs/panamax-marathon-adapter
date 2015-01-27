@@ -26,6 +26,8 @@ func newClient(endpoint string) *gomarathon.Client {
 type gomarathonClientAbstractor interface {
 	ListApps() (*gomarathon.Response, error)
 	GetApp(string) (*gomarathon.Response, error)
+	GetAppTasks(string) (*gomarathon.Response, error)
+	CreateApp(*gomarathon.Application) (*gomarathon.Response, error)
 	CreateGroup(*gomarathon.Group) (*gomarathon.Response, error)
 	DeleteApp(string) (*gomarathon.Response, error)
 	DeleteGroup(string) (*gomarathon.Response, error)
