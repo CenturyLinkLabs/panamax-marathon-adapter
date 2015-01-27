@@ -3,65 +3,48 @@ package marathon
 import (
 	"testing"
 	"fmt"
+	"time"
+	"math/rand"
+
+	"github.com/stretchr/testify/assert"
 )
 
-/*
-func TestJobStates(t *testing.T) {
-	go handleJobs(job_channel)
-	go handleApp(app_channel)
-
-	// new template
-
-	// analyze -- create the job struct list
-	var testJob job
-	testJob.preFn = preCondition
-	testJob.deployFn = deploy
-	testJob.postFn = postCondition
-
-	myApp := new(app)
-	myApp.jobs = []job{testJob}
-
-	app_channel <- myApp
-
-	myApp.Start()
-
-	time.Sleep(4 * 1e9)
-}
-*/
-
-func GroupDeployment(done chan bool, appchan chan *app, myGroup *group) {
-
-	fmt.Println("Group Deployment service started")
-	for i:=0; i < len(myGroup.apps); i++ {
-		appchan <- &(myGroup.apps[i])
-		go handleApp(appchan)
-	}
-
-    	for {
-		if (myGroup.Done()) {
-			done <- true
-		}
-	}
+func preCondition(*app) int {
+	fmt.Println("preCondition Slow")
+	time.Sleep(time.Duration(rand.Intn(100) * 100) * time.Millisecond)
+	fmt.Println("preCondition After")
+	return OK
 }
 
+func postCondition(*app) int {
+	fmt.Println("postCondition")
+	return OK
+}
 
-func TestGroupServiceApproach(t *testing.T) {
+func deploy(*app) int {
+	time.Sleep(time.Duration(rand.Intn(20) * 100) * time.Millisecond)
+	fmt.Println("deploy")
+	return OK
+}
 
-	var testApp, nextApp app
+func TestGroupDeployment(t *testing.T) {
+
+	var testApp, slowApp app
+
+	slowApp.name = "slowApp"
+	slowApp.currentState = 1
+	slowApp.preFn = preCondition
+	slowApp.deployFn = deploy
+	slowApp.postFn = postCondition
+
 	testApp.name = "testApp"
 	testApp.currentState = 1
-	testApp.preFn = preConditionSlow
+	testApp.preFn = preCondition
 	testApp.deployFn = deploy
 	testApp.postFn = postCondition
 
-	nextApp.name = "nextApp"
-	nextApp.currentState = 1
-	nextApp.preFn = preCondition
-	nextApp.deployFn = deploy
-	nextApp.postFn = postCondition
-
 	myGroup := new(group)
-	myGroup.apps = []app{testApp, nextApp}
+	myGroup.apps = []app{slowApp, testApp}
 
 	done := make(chan bool)
 	appchan := make(chan *app, len(myGroup.apps))
@@ -69,5 +52,5 @@ func TestGroupServiceApproach(t *testing.T) {
 	go GroupDeployment(done, appchan, myGroup)
 
 	<-done
-	fmt.Println("Clean Up")
+	assert.Equal(t, true, myGroup.Done())
 }

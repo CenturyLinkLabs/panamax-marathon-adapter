@@ -1,60 +1,42 @@
 package marathon
 
 import (
-	"time"
-	"fmt"
-
-	"github.com/jbdalido/gomarathon"
+	"log"
 )
 
 const (
 	OK = 0
-	FAIL = 1
+	WAIT = 1
+	FAIL = 2
+
+	PRE = 0
+	DEPLOY = 1
+	POST = 2
+	DONE = 3
 )
 
-const (
-	PRE = 1
-	DEPLOY = 2
-	POST = 3
-	DONE = 4
-)
+func GroupDeployment(done chan bool, appchan chan *app, myGroup *group) {
 
-type stateFn func(*app) int
+	log.Printf("Group Deployment started")
+	for i:=0; i < len(myGroup.apps); i++ {
+		appchan <- &(myGroup.apps[i])
+		go deployApp(appchan)
+	}
 
-func preCondition(*app) int {
-	fmt.Println("preCondition")
-	return OK
+    	for {
+		if (myGroup.Done()) {
+			done <- true
+		}
+	}
 }
 
-func preConditionSlow(*app) int {
-	fmt.Println("preCondition Slow")
-	time.Sleep(1000 * time.Millisecond)
-	fmt.Println("preCondition After")
-	return OK
-}
-
-func postCondition(*app) int {
-	fmt.Println("postCondition")
-	return OK
-}
-
-func deploy(*app) int {
-	fmt.Println("deploy")
-	return OK
-}
-
-func noOp(*app) int {
-	fmt.Println("NoOp")
-	return OK
-}
-
-func handleApp(apps chan *app) {
+func deployApp(apps chan *app) {
 	var state stateFn
 	j := <-apps
 
 	for {
-		fmt.Println("Job: ", j.name)
-		fmt.Println("Before Switch: ", j.currentState)
+		log.Printf("Job: %s", j.name)
+		log.Printf("Before Switch: %d", j.currentState)
 		switch (j.currentState) {
 			case DONE:
 				return
@@ -68,50 +50,15 @@ func handleApp(apps chan *app) {
 				state = j.postFn
 				break
 			default:
-				state = noOp
+				state = func(*app) int { return OK }
 
 		}
 
 		if (state(j) == OK) {
 			j.currentState +=1
 		}
-
-		fmt.Println("put it back")
 	}
 }
 
-type app struct {
-	name string
-	preFn stateFn
-	deployFn stateFn
-	postFn stateFn
-	currentState int
-	previousState int
-	application gomarathon.Application
-	submitted time.Time
-}
-
-func (j *app) Complete() bool {
-	if (j.currentState == DONE) {
-		return true
-	}
-
-	return false
-}
-
-
-type group struct {
-	id string
-	apps []app
-}
-
-func (a *group) Done() bool {
-	completed := true
-	for _, app := range a.apps {
-		completed = completed && app.Complete()
-    	}
-
-	return completed
-}
 
 
