@@ -28,7 +28,6 @@ func deployApp(apps chan *app, ctx *context) {
 	app := <-apps
 
 	for {
-		log.Printf("Job: %s", app.name)
 		switch (app.currentState) {
 			case DONE:
 				return

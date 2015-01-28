@@ -24,7 +24,7 @@ func loadDockerVars(ctx *context, reqs map[string]string) map[string]string {
 
 }
 
-func buildRequirements(service api.Service) stateFn {
+func buildRequirements(service *api.Service) stateFn {
 	var reqs = make(map[string]string)
 	links := service.Links
 	for i := range links {
@@ -55,7 +55,7 @@ func buildRequirements(service api.Service) stateFn {
 
 }
 
-func buildDeployment(service api.Service, client gomarathonClientAbstractor) stateFn {
+func buildDeployment(service *api.Service, client gomarathonClientAbstractor) stateFn {
 	return func(a *gomarathon.Application, ctx *context) int {
 		log.Printf("Starting Deployment: %s", a.ID)
 		_, err := client.CreateApp(a)
@@ -77,8 +77,8 @@ func createDockerMapping(mappings []*gomarathon.PortMapping) map[string]string {
 	return docker
 }
 
-func buildPostActions(service api.Service, client gomarathonClientAbstractor) stateFn {
-	var name = service.Name
+func buildPostActions(service *api.Service, client gomarathonClientAbstractor) stateFn {
+	_, name := splitServiceId(service.Name[1:], "/")
 
 	return func(a *gomarathon.Application, ctx *context) int {
 		log.Printf("Post Action for: %s", name)
@@ -99,15 +99,15 @@ func buildPostActions(service api.Service, client gomarathonClientAbstractor) st
 	}
 }
 
-func CreateAppDeployment(service api.Service, client gomarathonClientAbstractor) app {
-	log.Printf("Building Application Deployment")
+func CreateAppDeployment(service *api.Service, client gomarathonClientAbstractor) app {
+	log.Printf("Building Application Deployment %s", service.Name )
 	var converter = new(MarathonConverter)
 	var application app
-	application.name = "APP"
+	application.name = service.Name
 	application.preFn = buildRequirements(service)
 	application.deployFn = buildDeployment(service, client)
 	application.postFn = buildPostActions(service, client)
-	application.application = converter.convertToApp(&service)
+	application.application = converter.convertToApp(service)
 
 	return application
 }

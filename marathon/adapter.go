@@ -3,7 +3,6 @@ package marathon
 import (
 	"log"
 	"fmt"
-	"strings"
 
 	"github.com/centurylinklabs/panamax-marathon-adapter/api"
 	"github.com/jbdalido/gomarathon"
@@ -69,15 +68,28 @@ func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 
 func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Service, *api.Error) {
 	var apiErr *api.Error
-	group := new(gomarathon.Group)
+	var deployments = make([]app, len(services))
+	g := m.generateUID()
+	dependents := m.findDependencies(services)
 
-	group.ID = m.generateUID()
-	group.Apps = m.conv.convertToApps(services)
-
-	_, err := m.client.CreateGroup(group)
-	if err != nil {
-		apiErr = api.NewError(0, err.Error())
+	for i := range services {
+		if (dependents[services[i].Name] != 0) {
+			services[i].Deployment.Count = 1
+		}
+		services[i].Name = fmt.Sprintf("/%s/%s", g, services[i].Name)
+		deployments[i] = CreateAppDeployment(services[i], m.client)
 	}
+
+	myGroup := new(group)
+	myGroup.apps = deployments
+
+	done := make(chan bool)
+	appchan := make(chan *app, len(myGroup.apps))
+
+	go GroupDeployment(done, appchan, myGroup)
+
+	<-done
+
 	return make([]*api.Service, 0), apiErr
 }
 
@@ -87,7 +99,7 @@ func (m *marathonAdapter) UpdateService(s *api.Service) *api.Error {
 
 func (m *marathonAdapter) DestroyService(id string) *api.Error {
 	var apiErr *api.Error
-	group, _ := splitServiceId(id)
+	group, _ := splitServiceId(id, ".")
 
 	_, err := m.client.DeleteApp(sanitizeServiceId(id))
 	if err != nil {
@@ -99,23 +111,15 @@ func (m *marathonAdapter) DestroyService(id string) *api.Error {
 	return apiErr
 }
 
-// Split the service string into 2 parts part[0] is group part[1] is service
-func splitServiceId(serviceId string) (string, string) {
-	var group, service string
-
-	parts := strings.Split(serviceId, ".")
-	if len(parts) == 2 {
-		group = parts[0]
-		service = parts[1]
-	} else {
-		service = parts[0]
+func (m *marathonAdapter) findDependencies(services []*api.Service) map[string]int {
+	var deps = make(map[string]int)
+	for s := range(services) {
+		for l := range(services[s].Links) {
+			deps[services[s].Links[l].Name] = 1
+		}
 	}
-	return group, service
-}
 
-func sanitizeServiceId(id string) string {
-	group, service := splitServiceId(id)
-	return fmt.Sprintf("%s/%s", group, service)
+	return deps
 }
 
 

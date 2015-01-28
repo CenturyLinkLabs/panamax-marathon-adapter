@@ -12,7 +12,7 @@ func TestPreConditionEmpty(t *testing.T) {
 	var svc = api.Service{Name: "Foo", Command: "echo"}
 	var ctx = NewContext()
 
-	app := CreateAppDeployment(svc, nil)
+	app := CreateAppDeployment(&svc, nil)
 	app.name = "TestEmpty"
 
 	status := app.preFn(app.application, &ctx)
@@ -25,12 +25,12 @@ func TestPreConditionNotFound(t *testing.T) {
 	var svc = api.Service{Name: "Foo", Command: "echo"}
 	var link = api.Link{Name: "test", Alias: "bar"}
 	svc.Links = []*api.Link{&link}
-	app := CreateAppDeployment(svc, nil)
+	app := CreateAppDeployment(&svc, nil)
 	app.name = "TestLink"
 	status := app.preFn(app.application, &ctx)
 
 	var svc1 = api.Service{Name: "Food", Command: "echo"}
-	app1 := CreateAppDeployment(svc1, nil)
+	app1 := CreateAppDeployment(&svc1, nil)
 	app1.name = "TestEmpty"
 	status1 := app1.preFn(app1.application, &ctx)
 
@@ -47,7 +47,7 @@ func TestPreConditionFound(t *testing.T) {
 	var svc = api.Service{Name: "Bar", Command: "echo"}
 	var link = api.Link{Name: "foo", Alias: "bar"}
 	svc.Links = []*api.Link{&link}
-	app := CreateAppDeployment(svc, nil)
+	app := CreateAppDeployment(&svc, nil)
 	app.name = "TestLinked"
 	status := app.preFn(app.application, &ctx)
 
@@ -65,7 +65,7 @@ func TestPreConditionFoundOnlyFew(t *testing.T) {
 	var link = api.Link{Name: "foo", Alias: "bar"}
 	var link2 = api.Link{Name: "foo2", Alias: "bar"}
 	svc.Links = []*api.Link{&link, &link2}
-	app := CreateAppDeployment(svc,nil)
+	app := CreateAppDeployment(&svc,nil)
 	app.name = "TestNotLinked"
 	status := app.preFn(app.application, &ctx)
 
@@ -81,7 +81,7 @@ func TestDockerVar(t *testing.T) {
 	var svc = api.Service{Name: "Bar", Command: "echo"}
 	var link = api.Link{Name: "foo", Alias: "bar"}
 	svc.Links = []*api.Link{&link}
-	app := CreateAppDeployment(svc,nil)
+	app := CreateAppDeployment(&svc,nil)
 	app.name = "TestLinked"
 	status := app.preFn(app.application, &ctx)
 
@@ -96,7 +96,7 @@ func TestBuildDeployment(t *testing.T) {
 	var ctx = NewContext()
 	client := new(mockClient)
 	resp := new(gomarathon.Response)
-	app := CreateAppDeployment(svc, client)
+	app := CreateAppDeployment(&svc, client)
 	app.name = "TestEmpty"
 
 	client.On("CreateApp", app.application).Return(resp)
@@ -113,7 +113,7 @@ func TestPostAction(t *testing.T) {
 	var svc = api.Service{Name: "Foo", Command: "echo"}
 	var ctx = NewContext()
 
-	app := CreateAppDeployment(svc, client)
+	app := CreateAppDeployment(&svc, client)
 	resp.App = app.application
 	app.name = "TestEmpty"
 

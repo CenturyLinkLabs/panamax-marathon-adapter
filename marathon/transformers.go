@@ -2,10 +2,30 @@ package marathon
 
 import (
 	"strings"
+	"fmt"
 
 	"github.com/centurylinklabs/panamax-marathon-adapter/api"
 	"github.com/jbdalido/gomarathon"
 )
+
+// Split the service string into 2 parts part[0] is group part[1] is service
+func splitServiceId(serviceId string, del string) (string, string) {
+	var group, service string
+
+	parts := strings.Split(serviceId, del)
+	if len(parts) == 2 {
+		group = parts[0]
+		service = parts[1]
+	} else {
+		service = parts[0]
+	}
+	return group, service
+}
+
+func sanitizeServiceId(id string) string {
+	group, service := splitServiceId(id, ".")
+	return fmt.Sprintf("%s/%s", group, service)
+}
 
 type PanamaxServiceConverter interface {
 	convertToServices([]*gomarathon.Application) []*api.Service
@@ -49,11 +69,11 @@ func (c *MarathonConverter) convertToApps(services []*api.Service) []*gomarathon
 func (c *MarathonConverter) convertToApp(service *api.Service) *gomarathon.Application {
 	app := new(gomarathon.Application)
 
-  // set count to 1 for services with no deployment count specifier
-  var count int = 1;
-  if service.Deployment.Count > 0 {
-    count = service.Deployment.Count
-  }
+	// set count to 1 for services with no deployment count specifier
+	var count int = 1;
+	if service.Deployment.Count > 0 {
+		count = service.Deployment.Count
+	}
 
 	app.ID = strings.ToLower(service.Name)
 	app.Cmd = service.Command
