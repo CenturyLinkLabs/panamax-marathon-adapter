@@ -1,9 +1,9 @@
-package main
+package main // import "github.com/CenturyLinkLabs/panamax-marathon-adapter"
 
 import (
 	"fmt"
-	"github.com/centurylinklabs/panamax-marathon-adapter/api"
-	"github.com/centurylinklabs/panamax-marathon-adapter/marathon"
+	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
+	"github.com/CenturyLinkLabs/panamax-marathon-adapter/marathon"
 	"os"
 )
 

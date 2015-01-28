@@ -3,8 +3,8 @@ package marathon
 import (
 	"strings"
 
-	"github.com/centurylinklabs/panamax-marathon-adapter/api"
-	"github.com/jbdalido/gomarathon"
+	"github.com/CenturyLinkLabs/gomarathon"
+	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
 )
 
 type PanamaxServiceConverter interface {

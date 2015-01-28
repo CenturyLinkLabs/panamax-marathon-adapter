@@ -1,12 +1,12 @@
-package marathon
+package marathon // import "github.com/CenturyLinkLabs/panamax-marathon-adapter/marathon"
 
 import (
 	"log"
 	"fmt"
 	"strings"
 
-	"github.com/centurylinklabs/panamax-marathon-adapter/api"
-	"github.com/jbdalido/gomarathon"
+	"github.com/CenturyLinkLabs/gomarathon"
+	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
 	"github.com/satori/go.uuid"
 )
 
