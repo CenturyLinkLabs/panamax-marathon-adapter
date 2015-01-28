@@ -3,8 +3,8 @@ package marathon
 import (
 	"strings"
 
-	"github.com/centurylinklabs/panamax-marathon-adapter/api"
-	"github.com/jbdalido/gomarathon"
+	"github.com/CenturyLinkLabs/gomarathon"
+	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
 )
 
 // Split the service string into 2 parts part[0] is group part[1] is service

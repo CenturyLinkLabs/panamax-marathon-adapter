@@ -1,7 +1,7 @@
 package marathon
 
 import (
-	"github.com/centurylinklabs/panamax-marathon-adapter/api"
+	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
 	"github.com/jbdalido/gomarathon"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

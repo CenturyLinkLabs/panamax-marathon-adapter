@@ -1,18 +1,5 @@
-# Start from a Debian image with the latest version of Go installed
-# and a workspace (GOPATH) configured at /go.
-FROM golang
-
-# Copy the local package files to the container's workspace.
-ADD . /go/src/github.com/centurylinklabs/panamax-marathon-adapter
-
-# Build dependencies
-RUN go get github.com/codegangsta/martini
-RUN go get github.com/jbdalido/gomarathon
-RUN go get github.com/satori/go.uuid
-
-# Build adapter
-RUN go install github.com/centurylinklabs/panamax-marathon-adapter
-
-# Run the adapter
-ENTRYPOINT /go/bin/panamax-marathon-adapter
-
+FROM scratch
+MAINTAINER CenturyLink Labs <clt-labs-futuretech@centurylink.com>
+EXPOSE 8001
+COPY panamax-marathon-adapter /
+ENTRYPOINT ["/panamax-marathon-adapter"]
