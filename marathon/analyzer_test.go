@@ -110,12 +110,15 @@ func TestBuildDeployment(t *testing.T) {
 func TestPostAction(t *testing.T) {
 	client := new(mockClient)
 	resp := new(gomarathon.Response)
-	var svc = api.Service{Name: "Foo", Command: "echo"}
+	task := new(gomarathon.Task)
 	var ctx = NewContext()
+	var svc = api.Service{Name: "Foo", Command: "echo"}
 
+	task.Host = "1.2.3.4"
 	app := CreateAppDeployment(&svc, client)
-	resp.App = app.application
 	app.name = "TestEmpty"
+	resp.App = app.application
+	resp.Tasks = []*gomarathon.Task{task}
 
 	client.On("GetAppTasks", app.application.ID).Return(resp)
 	client.On("GetApp", app.application.ID).Return(resp)

@@ -67,11 +67,11 @@ func buildDeployment(service *api.Service, client gomarathonClientAbstractor) st
 	}
 }
 
-func createDockerMapping(mappings []*gomarathon.PortMapping) map[string]string {
+func createDockerMapping(host string, mappings []*gomarathon.PortMapping) map[string]string {
 	var docker = make(map[string]string)
 
 	for i := range(mappings) {
-		docker[fmt.Sprintf("PORT_%d_TCP_ADDR", mappings[i].ContainerPort)] = "10.141.141.10"
+		docker[fmt.Sprintf("PORT_%d_TCP_ADDR", mappings[i].ContainerPort)] = host
 		docker[fmt.Sprintf("PORT_%d_TCP_PORT", mappings[i].ContainerPort)] = fmt.Sprintf("%d",mappings[i].ServicePort)
 	}
 	return docker
@@ -83,12 +83,13 @@ func buildPostActions(service *api.Service, client gomarathonClientAbstractor) s
 	return func(a *gomarathon.Application, ctx *context) int {
 		log.Printf("Post Action for: %s", name)
 		res, _ := client.GetAppTasks(a.ID)
-		if len(res.Tasks) == 0 {
+		if len(res.Tasks) != 0 {
+			host := res.Tasks[0].Host
 			appRes, err := client.GetApp(a.ID)
 			if err != nil {
 				return FAIL
 			}
-			mappings := createDockerMapping(appRes.App.Container.Docker.PortMappings)
+			mappings := createDockerMapping(host, appRes.App.Container.Docker.PortMappings)
 			if len(mappings) > 0 {
 				ctx.values[name] = mappings
 			}
