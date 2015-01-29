@@ -2,63 +2,34 @@ package marathon
 
 import (
 	"log"
-
-	"github.com/jbdalido/gomarathon"
 )
 
-
-func GroupDeployment(done chan bool, appchan chan *app, myGroup *group) {
-	log.Printf("Group Deployment started")
+func deployGroupChannel(done chan status, deploychan chan *deployment, myGroup *deploymentGroup) {
+	log.Printf("Deploying Group: %s", myGroup.id)
 	var ctx = NewContext()
 
-	for i:=0; i < len(myGroup.apps); i++ {
-		appchan <- &(myGroup.apps[i])
-		go deployApp(appchan, &ctx)
+	for i:=0; i < len(myGroup.deployments); i++ {
+		deploychan <- &(myGroup.deployments[i])
+		go deployChannel(deploychan, &ctx)
 	}
 
     	for {
-		if (myGroup.Done() || myGroup.Failed()) {
-			done <- true
+		if (myGroup.Done()) {
+			done <- status{code: OK}
+		}
+
+		if (myGroup.Failed()) {
+			done <- status{code: FAIL}
 		}
 	}
 }
 
-func deployApp(apps chan *app, ctx *context) {
-	var state stateFn
-	app := <-apps
+func deployChannel(deployments chan *deployment, ctx *context) {
+	deployment := <-deployments
+	log.Printf("Starting Deployment: %s", deployment.name)
 
-	for {
-		switch (app.currentState) {
-			case DONE:
-				return
-			case FAILED:
-				return
-			case PRE:
-				state = app.preFn
-				break
-			case DEPLOY:
-				state = app.deployFn
-				break
-			case POST:
-				state = app.postFn
-				break
-			default:
-				state = func(*gomarathon.Application, *context) int { return OK }
-
-		}
-
-		status := state(app.application, ctx)
-
-		switch (status) {
-			case OK:
-				app.currentState +=1
-				break
-			case FAIL:
-				app.currentState = FAILED
-				return
-		}
-	}
+	for state := deployment.startingState; state != nil; {
+        	state = state(deployment, ctx)
+    	}
 }
-
-
 

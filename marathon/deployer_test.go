@@ -2,80 +2,56 @@ package marathon
 
 import (
 	"testing"
-	"fmt"
-	"time"
-	"math/rand"
 
-	"github.com/jbdalido/gomarathon"
 	"github.com/stretchr/testify/assert"
 )
 
-func preCondition(*gomarathon.Application, *context) int {
-	fmt.Println("preCondition Slow")
-	time.Sleep(time.Duration(rand.Intn(10) * 100) * time.Millisecond)
-	fmt.Println("preCondition After")
-	return OK
+func testSuccessState(deployment *deployment, ctx *context) stateFn  {
+	deployment.status.code = OK
+	return nil
 }
 
-func postCondition(*gomarathon.Application, *context) int {
-	fmt.Println("postCondition")
-	return OK
-}
-
-func deploy(*gomarathon.Application, *context) int {
-	time.Sleep(time.Duration(rand.Intn(100) * 100) * time.Millisecond)
-	fmt.Println("deploy")
-	return OK
-}
-
-func deployFail(*gomarathon.Application, *context) int {
-	fmt.Println("failed deployment")
-	return FAIL
+func testFailState(deployment *deployment, ctx *context) stateFn  {
+	deployment.status.code = FAIL
+	return nil
 }
 
 func TestGroupDeployment(t *testing.T) {
-	var testApp, slowApp app
+	var deployment1, deployment2 deployment
 
-	slowApp.name = "slowApp"
-	slowApp.preFn = preCondition
-	slowApp.deployFn = deploy
-	slowApp.postFn = postCondition
+	deployment1.name = "slowApp"
+	deployment1.startingState = testSuccessState
+	deployment2.name = "testApp"
+	deployment2.startingState = testSuccessState
 
-	testApp.name = "testApp"
-	testApp.preFn = preCondition
-	testApp.deployFn = deploy
-	testApp.postFn = postCondition
+	myGroup := new(deploymentGroup)
+	myGroup.deployments = []deployment{deployment1, deployment2}
 
-	myGroup := new(group)
-	myGroup.apps = []app{slowApp, testApp}
+	done := make(chan status)
+	appchan := make(chan *deployment, len(myGroup.deployments))
 
-	done := make(chan bool)
-	appchan := make(chan *app, len(myGroup.apps))
-
-	go GroupDeployment(done, appchan, myGroup)
+	go deployGroupChannel(done, appchan, myGroup)
 
 	<-done
 	assert.Equal(t, true, myGroup.Done())
 }
 
 func TestFailedGroupDeployment(t *testing.T) {
-	var failApp app
+	var deployment1, deployment2 deployment
 
-	failApp.name = "failApp"
-	failApp.preFn = preCondition
-	failApp.deployFn = deployFail
-	failApp.postFn = postCondition
+	deployment1.name = "slowApp"
+	deployment1.startingState = testSuccessState
+	deployment2.name = "testApp"
+	deployment2.startingState = testFailState
 
-	myGroup := new(group)
-	myGroup.apps = []app{failApp}
+	myGroup := new(deploymentGroup)
+	myGroup.deployments = []deployment{deployment1, deployment2}
 
-	done := make(chan bool)
-	appchan := make(chan *app, len(myGroup.apps))
+	done := make(chan status)
+	appchan := make(chan *deployment, len(myGroup.deployments))
 
-	go GroupDeployment(done, appchan, myGroup)
+	go deployGroupChannel(done, appchan, myGroup)
 
 	<-done
 	assert.Equal(t, true, myGroup.Failed())
-
-
 }

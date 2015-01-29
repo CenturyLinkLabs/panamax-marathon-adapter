@@ -68,7 +68,7 @@ func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 
 func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Service, *api.Error) {
 	var apiErr *api.Error
-	var deployments = make([]app, len(services))
+	var deployments = make([]deployment, len(services))
 	g := m.generateUID()
 
 	dependents := m.findDependencies(services)
@@ -78,16 +78,16 @@ func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Servic
 		}
 
 		m.prepareServiceForDeployment(g, services[i])
-		deployments[i] = CreateAppDeployment(services[i], m.client)
+		deployments[i] = createDeployment(services[i], m.client)
 	}
 
-	myGroup := new(group)
-	myGroup.apps = deployments
+	myGroup := new(deploymentGroup)
+	myGroup.deployments = deployments
 
-	done := make(chan bool)
-	appchan := make(chan *app, len(myGroup.apps))
+	done := make(chan status)
+	appchan := make(chan *deployment, len(myGroup.deployments))
 
-	go GroupDeployment(done, appchan, myGroup)
+	go deployGroupChannel(done, appchan, myGroup)
 
 	<-done
 	// Check the return for errors and/or timeout ?

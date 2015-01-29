@@ -4,22 +4,17 @@ import (
 	"time"
 
 	"github.com/jbdalido/gomarathon"
+	"github.com/centurylinklabs/panamax-marathon-adapter/api"
 )
 
 const (
-	FAILED = -1
-	PRE = 0
-	DEPLOY = 1
-	POST = 2
-	DONE = 3
-
-	OK = 0
-	WAIT = 1
-	FAIL = 2
+	DEPLOY = iota
+	OK
+	FAIL
 )
 
 
-type stateFn func(*gomarathon.Application, *context) int
+type stateFn func(*deployment, *context) stateFn
 
 type context struct {
 	values map[string]map[string]string
@@ -37,49 +32,60 @@ func NewContext() context {
 	return ctx
 }
 
-type app struct {
+type status struct {
+	code int
+	message string
+}
+
+type deployment struct {
 	name string
-	preFn stateFn
-	deployFn stateFn
-	postFn stateFn
-	currentState int
+	status status
+	reqs map[string]string
+	startingState stateFn
+	client gomarathonClientAbstractor
 	application *gomarathon.Application
 	submitted time.Time
 }
 
-func (a *app) complete() bool {
-	if (a.currentState >= DONE) {
-		return true
+func createDeployment(service *api.Service, client gomarathonClientAbstractor) deployment {
+	var converter = new(MarathonConverter)
+	var deployment deployment
+
+	var reqs = make(map[string]string)
+	links := service.Links
+	for i := range links {
+		reqs[links[i].Name] = links[i].Alias
 	}
 
-	return false
+	deployment.name = service.Name
+	deployment.reqs = reqs
+	deployment.client = client
+	deployment.startingState = requirementState
+	deployment.status = status{code: DEPLOY}
+	deployment.application = converter.convertToApp(service)
+
+	return deployment
 }
 
-func (a *app) failed() bool {
-	if (a.currentState == FAILED) {
-		return true
-	}
-	return false
-}
-
-type group struct {
+type deploymentGroup struct {
 	id string
-	apps []app
+	deployments []deployment
 }
 
-func (g *group) Done() bool {
+func (g *deploymentGroup) Done() bool {
 	completed := true
-	for _, app := range g.apps {
-		completed = completed && app.complete()
+	for _, deployment := range g.deployments {
+		completed = completed && (deployment.status.code == OK)
     	}
 
 	return completed
 }
 
-func (g *group) Failed() bool {
-	failed := true
-	for _, app := range g.apps {
-		failed = failed && app.failed()
+func (g *deploymentGroup) Failed() bool {
+	failed := false
+
+	for _, deployment := range g.deployments {
+		failed = failed || (deployment.status.code == FAIL)
     	}
 
 	return failed
