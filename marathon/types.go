@@ -3,8 +3,8 @@ package marathon
 import (
 	"time"
 
-	"github.com/jbdalido/gomarathon"
-	"github.com/centurylinklabs/panamax-marathon-adapter/api"
+	"github.com/CenturyLinkLabs/gomarathon"
+	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
 )
 
 const (

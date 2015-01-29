@@ -6,7 +6,7 @@ import (
 	"time"
 	"strings"
 
-	"github.com/jbdalido/gomarathon"
+	"github.com/CenturyLinkLabs/gomarathon"
 )
 
 func loadDockerVars(ctx *context, reqs map[string]string) map[string]string {
