@@ -2,7 +2,6 @@ package marathon
 
 import (
 	"strings"
-	"fmt"
 
 	"github.com/centurylinklabs/panamax-marathon-adapter/api"
 	"github.com/jbdalido/gomarathon"
@@ -20,11 +19,6 @@ func splitServiceId(serviceId string, del string) (string, string) {
 		service = parts[0]
 	}
 	return group, service
-}
-
-func sanitizeServiceId(id string) string {
-	group, service := splitServiceId(id, ".")
-	return fmt.Sprintf("%s/%s", group, service)
 }
 
 type PanamaxServiceConverter interface {

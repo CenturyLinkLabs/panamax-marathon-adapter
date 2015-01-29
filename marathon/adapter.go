@@ -59,7 +59,7 @@ func (m *marathonAdapter) GetServices() ([]*api.Service, *api.Error) {
 func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 	var apiErr *api.Error
 
-	response, err := m.client.GetApp(sanitizeServiceId(id))
+	response, err := m.client.GetApp(m.sanitizeMarathonAppURL(id))
 	if err != nil {
 		apiErr = api.NewError(0, err.Error())
 	}
@@ -70,13 +70,14 @@ func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Servic
 	var apiErr *api.Error
 	var deployments = make([]app, len(services))
 	g := m.generateUID()
-	dependents := m.findDependencies(services)
 
+	dependents := m.findDependencies(services)
 	for i := range services {
 		if (dependents[services[i].Name] != 0) {
 			services[i].Deployment.Count = 1
 		}
-		services[i].Name = fmt.Sprintf("/%s/%s", g, services[i].Name)
+
+		m.prepareServiceForDeployment(g, services[i])
 		deployments[i] = CreateAppDeployment(services[i], m.client)
 	}
 
@@ -89,8 +90,9 @@ func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Servic
 	go GroupDeployment(done, appchan, myGroup)
 
 	<-done
+	// Check the return for errors and/or timeout ?
 
-	return make([]*api.Service, 0), apiErr
+	return services, apiErr
 }
 
 func (m *marathonAdapter) UpdateService(s *api.Service) *api.Error {
@@ -101,7 +103,7 @@ func (m *marathonAdapter) DestroyService(id string) *api.Error {
 	var apiErr *api.Error
 	group, _ := splitServiceId(id, ".")
 
-	_, err := m.client.DeleteApp(sanitizeServiceId(id))
+	_, err := m.client.DeleteApp(m.sanitizeMarathonAppURL(id))
 	if err != nil {
 		apiErr = api.NewError(0, err.Error())
 	}
@@ -109,6 +111,19 @@ func (m *marathonAdapter) DestroyService(id string) *api.Error {
 	m.client.DeleteGroup(group) // Remove group if possible we dont care about error or return.
 
 	return apiErr
+}
+
+func (m *marathonAdapter) prepareServiceForDeployment(group string, service *api.Service) {
+	var serviceName = service.Name
+
+	service.Id = fmt.Sprintf("%s.%s", group, serviceName)
+	service.Name = fmt.Sprintf("/%s/%s", group, serviceName)
+	service.ActualState = "deployed"
+}
+
+func (m *marathonAdapter) sanitizeMarathonAppURL(id string) string {
+	group, service := splitServiceId(id, ".")
+	return fmt.Sprintf("%s/%s", group, service)
 }
 
 func (m *marathonAdapter) findDependencies(services []*api.Service) map[string]int {
