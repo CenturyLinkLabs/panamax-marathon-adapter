@@ -64,8 +64,18 @@ func createDockerMapping(host string, mappings []*gomarathon.PortMapping) map[st
 	var docker = make(map[string]string)
 
 	for i := range(mappings) {
-		docker[fmt.Sprintf("PORT_%d_TCP_ADDR", mappings[i].ContainerPort)] = host
-		docker[fmt.Sprintf("PORT_%d_TCP_PORT", mappings[i].ContainerPort)] = fmt.Sprintf("%d",mappings[i].ServicePort)
+		servicePort := mappings[i].ServicePort
+		containerPort := mappings[i].ContainerPort
+		protocol := strings.ToUpper(mappings[i].Protocol)
+
+		docker[fmt.Sprintf("PORT_%d_%s", containerPort, protocol)] = fmt.Sprintf("%s://%s:%d", protocol, host, containerPort)
+		docker[fmt.Sprintf("PORT_%d_%s_PROTO", containerPort, protocol)] = fmt.Sprintf("%s",protocol)
+		docker[fmt.Sprintf("PORT_%d_%s_ADDR", containerPort, protocol)] = host
+		docker[fmt.Sprintf("PORT_%d_%s_PORT", containerPort, protocol)] = fmt.Sprintf("%d",servicePort)
+
+		fmt.Sprintf("service port is %d", servicePort)
+		fmt.Sprintf("container port is %d", containerPort)
+		fmt.Sprintf("protocol is %s", protocol)
 	}
 	return docker
 }
