@@ -87,10 +87,15 @@ func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Servic
 	done := make(chan status)
 	appchan := make(chan *deployment, len(myGroup.deployments))
 
-	go deployGroupChannel(done, appchan, myGroup)
+	go deployGroupChannel(done, appchan, myGroup, DEPLOY_TIMEOUT)
 
-	<-done
-	// Check the return for errors and/or timeout ?
+	status := <-done
+	switch status.code {
+	case FAIL:
+		apiErr = api.NewError(0, "Group deployment failed.")
+	case TIMEOUT:
+		apiErr = api.NewError(0, "Group deployment timed out.")
+	}
 
 	return services, apiErr
 }

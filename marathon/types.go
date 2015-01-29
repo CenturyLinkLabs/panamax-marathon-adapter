@@ -11,8 +11,12 @@ const (
 	DEPLOY = iota
 	OK
 	FAIL
+	TIMEOUT
 )
 
+const (
+	DEPLOY_TIMEOUT = time.Minute * 30
+)
 
 type stateFn func(*deployment, *context) stateFn
 
@@ -76,7 +80,7 @@ func (g *deploymentGroup) Done() bool {
 	completed := true
 	for _, deployment := range g.deployments {
 		completed = completed && (deployment.status.code == OK)
-    	}
+    }
 
 	return completed
 }
@@ -85,8 +89,9 @@ func (g *deploymentGroup) Failed() bool {
 	failed := false
 
 	for _, deployment := range g.deployments {
-		failed = failed || (deployment.status.code == FAIL)
-    	}
+		failed = failed || (deployment.status.code == FAIL) || (deployment.status.code == TIMEOUT)
+    }
 
 	return failed
 }
+
