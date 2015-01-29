@@ -72,10 +72,6 @@ func createDockerMapping(host string, mappings []*gomarathon.PortMapping) map[st
 		docker[fmt.Sprintf("PORT_%d_%s_PROTO", containerPort, protocol)] = fmt.Sprintf("%s",protocol)
 		docker[fmt.Sprintf("PORT_%d_%s_ADDR", containerPort, protocol)] = host
 		docker[fmt.Sprintf("PORT_%d_%s_PORT", containerPort, protocol)] = fmt.Sprintf("%d",servicePort)
-
-		fmt.Sprintf("service port is %d", servicePort)
-		fmt.Sprintf("container port is %d", containerPort)
-		fmt.Sprintf("protocol is %s", protocol)
 	}
 	return docker
 }

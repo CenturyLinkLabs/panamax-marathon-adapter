@@ -1,7 +1,6 @@
 package marathon
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/CenturyLinkLabs/gomarathon"
@@ -76,16 +75,10 @@ func TestDockerVar(t *testing.T) {
 
 	var svc = api.Service{Name: "Bar", Command: "echo"}
 	var link = api.Link{Name: "foo", Alias: "bar"}
-	var port = api.Port{ContainerPort: 5555, Protocol: "UDP"}
-
 	svc.Links = []*api.Link{&link}
 	deployment := createDeployment(&svc,nil)
 	deployment.name = "TestLinked"
 	requirementState(&deployment, &ctx)
-
-	app := CreateAppDeployment(&svc,nil)
-	app.name = "TestLinked"
-	status := app.preFn(app.application, &ctx)
 
 	assert.Equal(t, DEPLOY, deployment.status.code)
 	assert.Equal(t, "3000", deployment.application.Env["BAR_PORT_3306_TCP_PORT"])
@@ -97,7 +90,6 @@ func TestCreateDockerMapping(t *testing.T) {
 	mappings := []*gomarathon.PortMapping{&port}
 
 	docker := createDockerMapping("141.10.10.141", mappings)
-	fmt.Println(docker)
 	assert.Equal(t, docker["PORT_5555_UDP"], "UDP://141.10.10.141:5555")
 	assert.Equal(t, docker["PORT_5555_UDP_PROTO"], "UDP")
 	assert.Equal(t, docker["PORT_5555_UDP_ADDR"], "141.10.10.141")
