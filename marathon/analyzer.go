@@ -13,7 +13,7 @@ func loadDockerVars(ctx *context, reqs map[string]string) map[string]string {
 	var docker = make(map[string]string)
 
 	for k, alias := range reqs {
-		for name, value := range ctx.values[k] {
+		for name, value := range ctx.values[strings.ToLower(k)] {
 			key := fmt.Sprintf("%s_%s", strings.ToUpper(alias), strings.ToUpper(name))
 			docker[key] = value
 		}
@@ -91,7 +91,7 @@ func postActionState(deployment *deployment, ctx *context) stateFn {
 		}
 		mappings := createDockerMapping(host, appRes.App.Container.Docker.PortMappings)
 		if len(mappings) > 0 {
-			ctx.values[name] = mappings
+			ctx.values[strings.ToLower(name)] = mappings
 		}
 
 		deployment.status.code = OK

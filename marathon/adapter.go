@@ -3,6 +3,7 @@ package marathon // import "github.com/CenturyLinkLabs/panamax-marathon-adapter/
 import (
 	"log"
 	"fmt"
+	"net/http"
 
 	"github.com/CenturyLinkLabs/gomarathon"
 	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
@@ -51,7 +52,7 @@ func (m *marathonAdapter) GetServices() ([]*api.Service, *api.Error) {
 
 	response, err := m.client.ListApps()
 	if err != nil {
-		apiErr = api.NewError(0, err.Error())
+		apiErr = api.NewError(http.StatusNotFound, err.Error())
 	}
 	return m.conv.convertToServices(response.Apps), apiErr
 }
@@ -61,7 +62,7 @@ func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 
 	response, err := m.client.GetApp(m.sanitizeMarathonAppURL(id))
 	if err != nil {
-		apiErr = api.NewError(0, err.Error())
+		apiErr = api.NewError(http.StatusNotFound, err.Error())
 	}
 	return m.conv.convertToService(response.App), apiErr
 }
@@ -88,9 +89,9 @@ func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Servic
 
 	switch status.code {
 	case FAIL:
-		apiErr = api.NewError(0, "Group deployment failed.")
+		apiErr = api.NewError(http.StatusConflict, "Group deployment failed.")
 	case TIMEOUT:
-		apiErr = api.NewError(0, "Group deployment timed out.")
+		apiErr = api.NewError(http.StatusInternalServerError, "Group deployment timed out.")
 	}
 
 	return services, apiErr
@@ -106,7 +107,7 @@ func (m *marathonAdapter) DestroyService(id string) *api.Error {
 
 	_, err := m.client.DeleteApp(m.sanitizeMarathonAppURL(id))
 	if err != nil {
-		apiErr = api.NewError(0, err.Error())
+		apiErr = api.NewError(http.StatusNotFound, err.Error())
 	}
 
 	m.client.DeleteGroup(group) // Remove group if possible we dont care about error or return.
