@@ -8,6 +8,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func setupTestApplication() gomarathon.Application {
+	var app gomarathon.Application
+
+	mapping := gomarathon.PortMapping{ServicePort: 1111, ContainerPort: 5555, Protocol: "UDP"}
+	portMappings := []*gomarathon.PortMapping{&mapping}
+
+	task := gomarathon.Task{Host: "141.10.10.141", Ports: []int{1000, 1001}}
+
+	docker := gomarathon.Docker{PortMappings: portMappings}
+	container := gomarathon.Container{Docker: &docker}
+
+	app.Container = &container
+	app.Tasks = []*gomarathon.Task{&task}
+
+	return app
+}
+
 func TestPreConditionEmpty(t *testing.T) {
 	var svc = api.Service{Name: "Foo", Command: "echo"}
 	var ctx = NewContext()
@@ -55,12 +72,11 @@ func TestPreConditionFoundOnlyFew(t *testing.T) {
 	fooMap["PORT_3306_TCP_PORT"] = "3000"
 	ctx.AddKey("foo", fooMap)
 
-
 	var svc = api.Service{Name: "Bar", Command: "echo"}
 	var link = api.Link{Name: "foo", Alias: "bar"}
 	var link2 = api.Link{Name: "foo2", Alias: "bar"}
 	svc.Links = []*api.Link{&link, &link2}
-	deployment := createDeployment(&svc,nil)
+	deployment := createDeployment(&svc, nil)
 	deployment.name = "TestNotLinked"
 	requirementState(&deployment, &ctx)
 
@@ -76,7 +92,7 @@ func TestDockerVar(t *testing.T) {
 	var svc = api.Service{Name: "Bar", Command: "echo"}
 	var link = api.Link{Name: "foo", Alias: "bar"}
 	svc.Links = []*api.Link{&link}
-	deployment := createDeployment(&svc,nil)
+	deployment := createDeployment(&svc, nil)
 	deployment.name = "TestLinked"
 	requirementState(&deployment, &ctx)
 
@@ -85,15 +101,26 @@ func TestDockerVar(t *testing.T) {
 }
 
 func TestCreateDockerMapping(t *testing.T) {
-	var port = gomarathon.PortMapping{ServicePort: 1111, ContainerPort: 5555, Protocol: "UDP"}
+	var app = new(gomarathon.Application)
 
-	mappings := []*gomarathon.PortMapping{&port}
 
-	docker := createDockerMapping("141.10.10.141", mappings)
-	assert.Equal(t, docker["PORT_5555_UDP"], "UDP://141.10.10.141:5555")
-	assert.Equal(t, docker["PORT_5555_UDP_PROTO"], "UDP")
-	assert.Equal(t, docker["PORT_5555_UDP_ADDR"], "141.10.10.141")
-	assert.Equal(t, docker["PORT_5555_UDP_PORT"], "1111")
+	mapping := gomarathon.PortMapping{ServicePort: 1111, ContainerPort: 5555, Protocol: "UDP"}
+	portMappings := []*gomarathon.PortMapping{&mapping}
+
+	task := gomarathon.Task{Host:"141.10.10.141", Ports:[]int{1000, 1001}}
+
+	docker := gomarathon.Docker{PortMappings: portMappings}
+	container := gomarathon.Container{Docker: &docker}
+
+	app.Container = &container
+	app.Tasks = []*gomarathon.Task{&task}
+
+	vars := createDockerMapping(app, "foo")
+
+	assert.Equal(t, vars["PORT_5555_UDP"], "UDP://141.10.10.141:1000")
+	assert.Equal(t, vars["PORT_5555_UDP_PROTO"], "UDP")
+	assert.Equal(t, vars["PORT_5555_UDP_ADDR"], "141.10.10.141")
+	assert.Equal(t, vars["PORT_5555_UDP_PORT"], "1000")
 }
 
 func TestBuildDeployment(t *testing.T) {
@@ -121,8 +148,9 @@ func TestPostAction(t *testing.T) {
 
 	deployment := createDeployment(&svc, client)
 	task.Host = "1.2.3.4"
+	task.Ports = []int{5555, 6666}
 	resp.App = deployment.application
-	resp.Tasks = []*gomarathon.Task{task}
+	resp.App.Tasks = []*gomarathon.Task{task}
 	deployment.name = "TestEmpty"
 
 	client.On("GetAppTasks", deployment.application.ID).Return(resp)

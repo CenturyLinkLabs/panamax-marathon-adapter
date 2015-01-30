@@ -28,7 +28,6 @@ func (c *context) AddKey(key string, values map[string]string) {
 	c.values[key] = values
 }
 
-
 func NewContext() context {
 	var ctx context
 	ctx.values = make(map[string]map[string]string)
@@ -37,18 +36,18 @@ func NewContext() context {
 }
 
 type status struct {
-	code int
+	code    int
 	message string
 }
 
 type deployment struct {
-	name string
-	status status
-	reqs map[string]string
+	name          string
+	status        status
+	reqs          map[string]string
 	startingState stateFn
-	client gomarathonClientAbstractor
-	application *gomarathon.Application
-	submitted time.Time
+	client        gomarathonClientAbstractor
+	application   *gomarathon.Application
+	submitted     time.Time
 }
 
 func createDeployment(service *api.Service, client gomarathonClientAbstractor) deployment {
@@ -72,7 +71,7 @@ func createDeployment(service *api.Service, client gomarathonClientAbstractor) d
 }
 
 type deploymentGroup struct {
-	id string
+	id          string
 	deployments []deployment
 }
 
@@ -80,7 +79,7 @@ func (g *deploymentGroup) Done() bool {
 	completed := true
 	for _, deployment := range g.deployments {
 		completed = completed && (deployment.status.code == OK)
-    }
+	}
 
 	return completed
 }
@@ -90,8 +89,7 @@ func (g *deploymentGroup) Failed() bool {
 
 	for _, deployment := range g.deployments {
 		failed = failed || (deployment.status.code == FAIL) || (deployment.status.code == TIMEOUT)
-    }
+	}
 
 	return failed
 }
-

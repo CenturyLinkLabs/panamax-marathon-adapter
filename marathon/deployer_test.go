@@ -9,7 +9,7 @@ import (
 
 var timeoutDuration = time.Second * 10
 
-func testSuccessState(deployment *deployment, ctx *context) stateFn  {
+func testSuccessState(deployment *deployment, ctx *context) stateFn {
 	deployment.status.code = OK
 	return nil
 }

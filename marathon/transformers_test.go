@@ -1,8 +1,8 @@
 package marathon
 
 import (
-	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
 	"github.com/CenturyLinkLabs/gomarathon"
+	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -43,7 +43,7 @@ func TestConvertToApp(t *testing.T) {
 	service := api.Service{Name: "FOO", Command: "echo", Deployment: api.Deployment{Count: 5}}
 	app := mConverter.convertToApp(&service)
 
-  	service1 := api.Service{Name: "FOO", Command: "echo"}
+	service1 := api.Service{Name: "FOO", Command: "echo"}
 	app1 := mConverter.convertToApp(&service1)
 
 	assert.Equal(t, "foo", app.ID)

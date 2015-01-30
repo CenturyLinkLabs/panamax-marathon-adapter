@@ -1,8 +1,8 @@
 package marathon // import "github.com/CenturyLinkLabs/panamax-marathon-adapter/marathon"
 
 import (
-	"log"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/CenturyLinkLabs/gomarathon"
@@ -34,8 +34,8 @@ type gomarathonClientAbstractor interface {
 }
 
 type marathonAdapter struct {
-	client gomarathonClientAbstractor
-	conv   PanamaxServiceConverter
+	client      gomarathonClientAbstractor
+	conv        PanamaxServiceConverter
 	generateUID func() string
 }
 
@@ -43,7 +43,7 @@ func NewMarathonAdapter(endpoint string) *marathonAdapter {
 	adapter := new(marathonAdapter)
 	adapter.client = newClient(endpoint)
 	adapter.conv = new(MarathonConverter)
-	adapter.generateUID = func() string { return fmt.Sprintf("%s",uuid.NewV4()) }
+	adapter.generateUID = func() string { return fmt.Sprintf("%s", uuid.NewV4()) }
 	return adapter
 }
 
@@ -74,7 +74,7 @@ func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Servic
 
 	dependents := m.findDependencies(services)
 	for i := range services {
-		if (dependents[services[i].Name] != 0) {
+		if dependents[services[i].Name] != 0 {
 			services[i].Deployment.Count = 1
 		}
 
@@ -130,13 +130,11 @@ func (m *marathonAdapter) sanitizeMarathonAppURL(id string) string {
 
 func (m *marathonAdapter) findDependencies(services []*api.Service) map[string]int {
 	var deps = make(map[string]int)
-	for s := range(services) {
-		for l := range(services[s].Links) {
+	for s := range services {
+		for l := range services[s].Links {
 			deps[services[s].Links[l].Name] = 1
 		}
 	}
 
 	return deps
 }
-
-

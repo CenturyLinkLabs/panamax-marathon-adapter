@@ -64,7 +64,7 @@ func (c *MarathonConverter) convertToApp(service *api.Service) *gomarathon.Appli
 	app := new(gomarathon.Application)
 
 	// set count to 1 for services with no deployment count specifier
-	var count int = 1;
+	var count int = 1
 	if service.Deployment.Count > 0 {
 		count = service.Deployment.Count
 	}
