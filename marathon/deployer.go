@@ -5,6 +5,34 @@ import (
 	"time"
 )
 
+func deployGroup(myGroup *deploymentGroup, timeout time.Duration) status {
+	log.Printf("Deploying Group: %s", myGroup.id)
+
+	// use a timeout channel
+	timeoutchan := timeoutChannel(timeout)
+
+	// set up deployment channel
+	deploymentChannel := deployGroupChannel(myGroup)
+
+	for {
+		select {
+		case <-timeoutchan:
+			log.Printf("Deployment timed out")
+			return status{code: TIMEOUT}
+		case <-deploymentChannel:
+			if (myGroup.Done()) {
+				return status{code: OK}
+			}
+
+			if (myGroup.Failed()) {
+				log.Printf("Deployment Failed")
+				return status{code: FAIL}
+			}
+		}
+	}
+
+}
+
 func timeoutChannel(duration time.Duration) chan bool {
 	// make a timeout channel
 	timeout := make(chan bool, 1)
@@ -17,41 +45,25 @@ func timeoutChannel(duration time.Duration) chan bool {
 	return timeout
 }
 
-func deployGroupChannel(done chan status, deploychan chan *deployment, myGroup *deploymentGroup, timeoutDuration time.Duration) {
-	log.Printf("Deploying Group: %s", myGroup.id)
+func deployGroupChannel(myGroup *deploymentGroup) chan status {
+
 	var ctx = NewContext()
 
-	// use a timeout channel
-	timeoutchan := timeoutChannel(timeoutDuration)
-
+	deploymentChannel := make(chan status, len(myGroup.deployments))
 	for i:=0; i < len(myGroup.deployments); i++ {
-		deploychan <- &(myGroup.deployments[i])
-		go deployChannel(deploychan, &ctx)
+		go deploy(deploymentChannel, &myGroup.deployments[i], &ctx)
 	}
 
-	for {
-		select {
-		case <-timeoutchan:
-			log.Printf("Deployment timed out")
-			done <- status{code: TIMEOUT}
-		default:
-			if (myGroup.Done()) {
-				done <- status{code: OK}
-			}
-
-			if (myGroup.Failed()) {
-				done <- status{code: FAIL}
-			}
-		}
-	}
+	return deploymentChannel
 }
 
-func deployChannel(deployments chan *deployment, ctx *context) {
-	deployment := <-deployments
+func deploy(done chan status, deployment *deployment, ctx *context) {
 	log.Printf("Starting Deployment: %s", deployment.name)
 
 	for state := deployment.startingState; state != nil; {
         state = state(deployment, ctx)
-    }
+    	}
+
+	done <- deployment.status
 }
 

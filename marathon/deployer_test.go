@@ -36,12 +36,8 @@ func TestGroupDeployment(t *testing.T) {
 	myGroup := new(deploymentGroup)
 	myGroup.deployments = []deployment{deployment1, deployment2}
 
-	done := make(chan status)
-	appchan := make(chan *deployment, len(myGroup.deployments))
+	deployGroup(myGroup, timeoutDuration)
 
-	go deployGroupChannel(done, appchan, myGroup, timeoutDuration)
-
-	<-done
 	assert.Equal(t, true, myGroup.Done())
 }
 
@@ -56,12 +52,8 @@ func TestFailedGroupDeployment(t *testing.T) {
 	myGroup := new(deploymentGroup)
 	myGroup.deployments = []deployment{deployment1, deployment2}
 
-	done := make(chan status)
-	appchan := make(chan *deployment, len(myGroup.deployments))
+	deployGroup(myGroup, timeoutDuration)
 
-	go deployGroupChannel(done, appchan, myGroup, timeoutDuration)
-
-	<-done
 	assert.Equal(t, true, myGroup.Failed())
 }
 
@@ -76,12 +68,7 @@ func TestTimedoutGroupDeployment(t *testing.T) {
 	myGroup := new(deploymentGroup)
 	myGroup.deployments = []deployment{deployment1, deployment2}
 
-	done := make(chan status)
-	appchan := make(chan *deployment, len(myGroup.deployments))
-
-	go deployGroupChannel(done, appchan, myGroup, timeoutDuration)
-
-	status := <-done
+	status := deployGroup(myGroup, timeoutDuration)
 
 	assert.Equal(t, OK, myGroup.deployments[0].status.code)
 	assert.Equal(t, TIMEOUT, status.code)
