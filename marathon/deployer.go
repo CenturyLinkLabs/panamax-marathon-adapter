@@ -8,11 +8,13 @@ import (
 func deployGroup(myGroup *deploymentGroup, timeout time.Duration) status {
 	log.Printf("Deploying Group: %s", myGroup.id)
 
+	var ctx = NewContext()
+
 	// use a timeout channel
 	timeoutchan := timeoutChannel(timeout)
 
 	// set up deployment channel
-	deploymentChannel := deployGroupChannel(myGroup)
+	deploymentChannel := deployGroupChannel(myGroup, &ctx)
 
 	for {
 		select {
@@ -45,13 +47,11 @@ func timeoutChannel(duration time.Duration) chan bool {
 	return timeout
 }
 
-func deployGroupChannel(myGroup *deploymentGroup) chan status {
-
-	var ctx = NewContext()
+func deployGroupChannel(myGroup *deploymentGroup, ctx *context) chan status {
 
 	deploymentChannel := make(chan status, len(myGroup.deployments))
 	for i:=0; i < len(myGroup.deployments); i++ {
-		go deploy(deploymentChannel, &myGroup.deployments[i], &ctx)
+		go deploy(deploymentChannel, &myGroup.deployments[i], ctx)
 	}
 
 	return deploymentChannel

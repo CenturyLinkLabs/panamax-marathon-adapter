@@ -24,12 +24,14 @@ func loadDockerVars(ctx *context, reqs map[string]string) map[string]string {
 }
 
 func requirementState(deployment *deployment, ctx *context) stateFn {
+	log.Printf("Requirements %s", deployment.name)
 	if (len(deployment.reqs) == 0) {
 		return deploymentState
 	} else {
 		found := true
 		for k, _ := range deployment.reqs {
-			if (ctx.values[k] == nil) {
+
+			if (ctx.values[strings.ToLower(k)] == nil) {
 				found = false
 			}
 		}
@@ -62,7 +64,6 @@ func deploymentState(deployment *deployment, ctx *context) stateFn {
 
 func createDockerMapping(host string, mappings []*gomarathon.PortMapping) map[string]string {
 	var docker = make(map[string]string)
-
 	for i := range(mappings) {
 		servicePort := mappings[i].ServicePort
 		containerPort := mappings[i].ContainerPort
@@ -73,6 +74,7 @@ func createDockerMapping(host string, mappings []*gomarathon.PortMapping) map[st
 		docker[fmt.Sprintf("PORT_%d_%s_ADDR", containerPort, protocol)] = host
 		docker[fmt.Sprintf("PORT_%d_%s_PORT", containerPort, protocol)] = fmt.Sprintf("%d",servicePort)
 	}
+
 	return docker
 }
 
@@ -91,6 +93,7 @@ func postActionState(deployment *deployment, ctx *context) stateFn {
 		}
 		mappings := createDockerMapping(host, appRes.App.Container.Docker.PortMappings)
 		if len(mappings) > 0 {
+			log.Printf("Adding mappings : %s", strings.ToLower(name))
 			ctx.values[strings.ToLower(name)] = mappings
 		}
 
