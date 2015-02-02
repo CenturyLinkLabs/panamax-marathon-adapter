@@ -26,6 +26,7 @@ func TestConvertToService(t *testing.T) {
 
 	assert.Equal(t, "/foo", service.Name)
 	assert.Equal(t, "foo", service.Id)
+	assert.Equal(t, "Deploying", service.ActualState)
 }
 
 func TestConvertToApps(t *testing.T) {

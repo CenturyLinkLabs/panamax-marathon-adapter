@@ -1,3 +1,4 @@
+//Package api provides the server and structures to respond to Panamax Remote Agent Requests.
 package api
 
 import (

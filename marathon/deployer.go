@@ -5,20 +5,24 @@ import (
 	"time"
 )
 
+// Manages a group of deployment structures as a single deployment.
+// It uses a deployment channel and a timeout channel to determine
+// if the overall deployment was successful, failed, or was unable to complete
+// within a given duration.
 func deployGroup(myGroup *deploymentGroup, timeout time.Duration) status {
 	log.Printf("Deploying Group: %s", myGroup.id)
 
 	var ctx = NewContext()
 
 	// use a timeout channel
-	timeoutchan := timeoutChannel(timeout)
+	timeoutChannel := timeoutChannel(timeout)
 
 	// set up deployment channel
 	deploymentChannel := deployGroupChannel(myGroup, &ctx)
 
 	for {
 		select {
-		case <-timeoutchan:
+		case <-timeoutChannel:
 			log.Printf("Deployment timed out")
 			return status{code: TIMEOUT}
 		case <-deploymentChannel:

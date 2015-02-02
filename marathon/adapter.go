@@ -1,15 +1,18 @@
+// Package marathon is the Marathon implementation for a Panamax Remote Adapter.
 package marathon // import "github.com/CenturyLinkLabs/panamax-marathon-adapter/marathon"
 
 import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/CenturyLinkLabs/gomarathon"
 	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
 	"github.com/satori/go.uuid"
 )
 
+// Creates a client connection to Marathon on the provided endpoint.
 func newClient(endpoint string) *gomarathon.Client {
 	url := endpoint
 	if endpoint != "" {
@@ -125,7 +128,7 @@ func (m *marathonAdapter) prepareServiceForDeployment(group string, service *api
 
 func (m *marathonAdapter) sanitizeMarathonAppURL(id string) string {
 	group, service := splitServiceId(id, ".")
-	return fmt.Sprintf("%s/%s", group, service)
+	return fmt.Sprintf("%s/%s", strings.ToLower(group), strings.ToLower(service))
 }
 
 func (m *marathonAdapter) findDependencies(services []*api.Service) map[string]int {

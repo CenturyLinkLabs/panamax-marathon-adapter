@@ -4,12 +4,7 @@ import (
 	"fmt"
 )
 
-const (
-	StartedStatus = "started"
-	StoppedStatus = "stopped"
-	ErrorStatus   = "error"
-)
-
+// PanamaxAdapter encapulates the CRUD operations for Services
 type PanamaxAdapter interface {
 	GetServices() ([]*Service, *Error)
 	GetService(string) (*Service, *Error)
@@ -18,21 +13,24 @@ type PanamaxAdapter interface {
 	DestroyService(string) *Error
 }
 
+// Service structure with nested elements
 type Service struct {
-	Id           string         `json:"id"`
-	Name         string         `json:"name,omitempty"`
-	Source       string         `json:"source,omitempty"`
-	Command      string         `json:"command,omitempty"`
-	Links        []*Link        `json:"links,omitempty"`
-	Ports        []*Port        `json:"ports,omitempty"`
-	Expose       []uint16       `json:"expose,omitempty"`
-	Environment  []*Environment `json:"environment,omitempty"`
-	Volumes      []*Volume      `json:"volumes,omitempty"`
-	VolumesFrom  []*VolumesFrom `json:"volumes_from,omitempty"`
-	ActualState  string         `json:"actualState,omitempty"`
-	Deployment   Deployment     `json:"deployment,omitempty"`
+	Id          string         `json:"id"`
+	Name        string         `json:"name,omitempty"`
+	Source      string         `json:"source,omitempty"`
+	Command     string         `json:"command,omitempty"`
+	Links       []*Link        `json:"links,omitempty"`
+	Ports       []*Port        `json:"ports,omitempty"`
+	Expose      []uint16       `json:"expose,omitempty"`
+	Environment []*Environment `json:"environment,omitempty"`
+	Volumes     []*Volume      `json:"volumes,omitempty"`
+	VolumesFrom []*VolumesFrom `json:"volumes_from,omitempty"`
+	ActualState string         `json:"actualState,omitempty"`
+	Deployment  Deployment     `json:"deployment,omitempty"`
 }
 
+// Deployment structure contains the deployment count
+// for a service.
 type Deployment struct {
 	Count int `json:"count,omitempty"`
 }
@@ -62,12 +60,13 @@ type VolumesFrom struct {
 	Name string `json:"name"`
 }
 
+// Metadata contains informational data about the current adapter.
 type Metadata struct {
 	Version string `json:"version"`
 	Type    string `json:"type"`
 }
 
-// The serializable Error structure.
+// Error is a serializable Error structure.
 type Error struct {
 	Code    int
 	Message string `json:"message"`
