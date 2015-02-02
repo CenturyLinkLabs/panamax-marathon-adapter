@@ -110,6 +110,6 @@ func TestUnmarshalService(t *testing.T) {
 	assert.Equal(t, "myServiceName", service.Name)
 	assert.Equal(t, 8080, service.Ports[0].ContainerPort)
 	assert.Equal(t, "bar", service.Volumes[0].ContainerPath)
-  assert.Equal(t, 1, service.Deployment.Count)
-  assert.Equal(t, "myvolume", service.VolumesFrom[0].Name)
+	assert.Equal(t, 1, service.Deployment.Count)
+	assert.Equal(t, "myvolume", service.VolumesFrom[0].Name)
 }

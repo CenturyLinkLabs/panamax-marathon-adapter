@@ -17,6 +17,9 @@ type martiniServer struct {
 	svr *martini.Martini
 }
 
+// NewServer creates an instance of a martini server. The
+// adapterInst parameter is the adapter type the server will
+// use when dispatching requests.
 func NewServer(adapterInst PanamaxAdapter) *martiniServer {
 	s := martini.New()
 

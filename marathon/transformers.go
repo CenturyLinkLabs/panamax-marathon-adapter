@@ -44,9 +44,12 @@ func (c *MarathonConverter) convertToServices(apps []*gomarathon.Application) []
 func (c *MarathonConverter) convertToService(app *gomarathon.Application) *api.Service {
 	service := new(api.Service)
 
-	service.ActualState = api.StartedStatus
 	service.Id = (strings.Replace(app.ID, "/", ".", -1))[1:]
 	service.Name = app.ID
+	service.ActualState = "Deploying"
+	if app.TasksRunning > 0 {
+		service.ActualState = "Running"
+	}
 
 	return service
 }
