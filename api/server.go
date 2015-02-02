@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	VERSION = 1
+	API_VERSION = "v1"
+	VERSION = "0.1.0"
 )
 
 type martiniServer struct {
@@ -32,7 +33,7 @@ func NewServer(adapterInst PanamaxAdapter) *martiniServer {
 	})
 	// Setup routes
 	router := martini.NewRouter()
-	router.Group(fmt.Sprintf("/v%d", VERSION), func(r martini.Router) {
+	router.Group(fmt.Sprintf("/%s", API_VERSION), func(r martini.Router) {
 		r.Get(`/services`, getServices)
 		r.Get(`/services/:id`, getService)
 		r.Post(`/services`, createServices)

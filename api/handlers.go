@@ -63,7 +63,7 @@ func deleteService(adapter PanamaxAdapter, params martini.Params) (int, string) 
 
 func getMetadata(e encoder, adapter PanamaxAdapter) (int, string) {
 
-	data := &Metadata{Version: "1.0.0", Type: "marathon"}
+	data := &Metadata{Version: VERSION, Type: "marathon"}
 
 	return http.StatusOK, e.Encode(data)
 }
