@@ -13,7 +13,6 @@ func setupTestApplication() gomarathon.Application {
 
 	mapping := gomarathon.PortMapping{ServicePort: 1111, ContainerPort: 5555, Protocol: "UDP"}
 	portMappings := []*gomarathon.PortMapping{&mapping}
-
 	task := gomarathon.Task{Host: "141.10.10.141", Ports: []int{1000, 1001}}
 
 	docker := gomarathon.Docker{PortMappings: portMappings}
@@ -101,21 +100,9 @@ func TestDockerVar(t *testing.T) {
 }
 
 func TestCreateDockerMapping(t *testing.T) {
-	var app = new(gomarathon.Application)
+	var app = setupTestApplication()
 
-
-	mapping := gomarathon.PortMapping{ServicePort: 1111, ContainerPort: 5555, Protocol: "UDP"}
-	portMappings := []*gomarathon.PortMapping{&mapping}
-
-	task := gomarathon.Task{Host:"141.10.10.141", Ports:[]int{1000, 1001}}
-
-	docker := gomarathon.Docker{PortMappings: portMappings}
-	container := gomarathon.Container{Docker: &docker}
-
-	app.Container = &container
-	app.Tasks = []*gomarathon.Task{&task}
-
-	vars := createDockerMapping(app, "foo")
+	vars := createDockerMapping(&app, "foo")
 
 	assert.Equal(t, vars["PORT_5555_UDP"], "UDP://141.10.10.141:1000")
 	assert.Equal(t, vars["PORT_5555_UDP_PROTO"], "UDP")
@@ -145,12 +132,13 @@ func TestPostAction(t *testing.T) {
 	task := new(gomarathon.Task)
 	var svc = api.Service{Name: "Foo", Command: "echo"}
 	var ctx = NewContext()
+	var app = setupTestApplication()
 
 	deployment := createDeployment(&svc, client)
 	task.Host = "1.2.3.4"
 	task.Ports = []int{5555, 6666}
-	resp.App = deployment.application
-	resp.App.Tasks = []*gomarathon.Task{task}
+	resp.App = &app
+	resp.Tasks = []*gomarathon.Task{task}
 	deployment.name = "TestEmpty"
 
 	client.On("GetAppTasks", deployment.application.ID).Return(resp)
