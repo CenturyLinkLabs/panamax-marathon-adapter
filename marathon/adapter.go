@@ -26,6 +26,19 @@ func newClient(endpoint string) *gomarathon.Client {
 	return c
 }
 
+func sanitizeServiceName(name string) string {
+	name = strings.Replace(name, " ", "", -1)
+	name = strings.Replace(name, "-", "", -1)
+	name = strings.Replace(name, "_", "", -1)
+	name = strings.Replace(name, ",", "", -1)
+	return name
+}
+
+func sanitizeMarathonAppURL(id string) string {
+	group, service := splitServiceId(id, ".")
+	return fmt.Sprintf("%s/%s", strings.ToLower(group), strings.ToLower(service))
+}
+
 type gomarathonClientAbstractor interface {
 	ListApps() (*gomarathon.Response, error)
 	GetApp(string) (*gomarathon.Response, error)
@@ -63,7 +76,7 @@ func (m *marathonAdapter) GetServices() ([]*api.Service, *api.Error) {
 func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 	var apiErr *api.Error
 
-	response, err := m.client.GetApp(m.sanitizeMarathonAppURL(id))
+	response, err := m.client.GetApp(sanitizeMarathonAppURL(id))
 	if err != nil {
 		apiErr = api.NewError(http.StatusNotFound, err.Error())
 	}
@@ -108,7 +121,7 @@ func (m *marathonAdapter) DestroyService(id string) *api.Error {
 	var apiErr *api.Error
 	group, _ := splitServiceId(id, ".")
 
-	_, err := m.client.DeleteApp(m.sanitizeMarathonAppURL(id))
+	_, err := m.client.DeleteApp(sanitizeMarathonAppURL(id))
 	if err != nil {
 		apiErr = api.NewError(http.StatusNotFound, err.Error())
 	}
@@ -119,16 +132,11 @@ func (m *marathonAdapter) DestroyService(id string) *api.Error {
 }
 
 func (m *marathonAdapter) prepareServiceForDeployment(group string, service *api.Service) {
-	var serviceName = service.Name
+	var serviceName = sanitizeServiceName(service.Name)
 
 	service.Id = fmt.Sprintf("%s.%s", group, serviceName)
 	service.Name = fmt.Sprintf("/%s/%s", group, serviceName)
 	service.ActualState = "deployed"
-}
-
-func (m *marathonAdapter) sanitizeMarathonAppURL(id string) string {
-	group, service := splitServiceId(id, ".")
-	return fmt.Sprintf("%s/%s", strings.ToLower(group), strings.ToLower(service))
 }
 
 func (m *marathonAdapter) findDependencies(services []*api.Service) map[string]int {
