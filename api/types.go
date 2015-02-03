@@ -4,7 +4,8 @@ import (
 	"fmt"
 )
 
-// PanamaxAdapter encapulates the CRUD operations for Services
+// PanamaxAdapter encapulates the CRUD operations for Services.
+// These methods must be implemented to fulfill the adapter contract.
 type PanamaxAdapter interface {
 	GetServices() ([]*Service, *Error)
 	GetService(string) (*Service, *Error)
@@ -13,7 +14,10 @@ type PanamaxAdapter interface {
 	DestroyService(string) *Error
 }
 
-// Service structure with nested elements
+// A Service describes the information needed to deploy and
+// scale a desired application. The Id is required and the
+// actualState is used to provide status back to the remote
+// agent.
 type Service struct {
 	Id          string         `json:"id"`
 	Name        string         `json:"name,omitempty"`
@@ -35,22 +39,29 @@ type Deployment struct {
 	Count int `json:"count,omitempty"`
 }
 
+// A Link is equivalent to the docker link command.
+// It contains the named of a service and the desired alias.
 type Link struct {
 	Name  string `json:"name"`
 	Alias string `json:"alias"`
 }
 
+// A Port is desribes a docker port mapping.
 type Port struct {
 	HostPort      uint16 `json:"hostPort,omitempty"`
 	ContainerPort uint16 `json:"containerPort"`
 	Protocol      string `json:"protocol,omitempty"`
 }
 
+// A Environment is a structure which contains environmental variables.
+// They are equivalent to the -e "Name=Value" on the docker command line.
 type Environment struct {
 	Variable string `json:"variable"`
 	Value    string `json:"value"`
 }
 
+// A Volume is used to mount a host directory into the container and is
+// translated into a -v docker command.
 type Volume struct {
 	HostPath      string `json:"hostPath"`
 	ContainerPath string `json:"containerPath"`
@@ -66,7 +77,8 @@ type Metadata struct {
 	Type    string `json:"type"`
 }
 
-// Error is a serializable Error structure.
+// Error is an application specific error structure which
+// encapsulates an error code and message.
 type Error struct {
 	Code    int
 	Message string `json:"message"`

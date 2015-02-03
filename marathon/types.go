@@ -18,16 +18,25 @@ const (
 	DEPLOY_TIMEOUT = time.Minute * 30
 )
 
+
+// A state function type used to define the states within
+// deployment workflow.
 type stateFn func(*deployment, *context) stateFn
 
+// The context is a helper construct used to define a
+// map of maps. The context is used by the deployment
+// workflow to share data between steps.
 type context struct {
 	values map[string]map[string]string
 }
 
+// The context AddKey function is a helper to insert maps into the
+// context under a provided key.
 func (c *context) AddKey(key string, values map[string]string) {
 	c.values[key] = values
 }
 
+// Creates a new context with empty values.
 func NewContext() context {
 	var ctx context
 	ctx.values = make(map[string]map[string]string)
@@ -35,11 +44,16 @@ func NewContext() context {
 	return ctx
 }
 
+// A deployment status structure used by the deployment
+// process to determine success or failure of a task.
 type status struct {
 	code    int
 	message string
 }
 
+// The deployment structure defines a deployment task for
+// the workflow. A deployment task requires a name and a
+// startingState.
 type deployment struct {
 	name          string
 	status        status
@@ -50,6 +64,11 @@ type deployment struct {
 	submitted     time.Time
 }
 
+// A constructor method for a deployment task.
+//
+// Given a service and a gomarathon client creates a complete deployment task structure.
+// The service is investigated to build a requirements list and the starting state is
+// set to the requirementState.
 func createDeployment(service *api.Service, client gomarathonClientAbstractor) deployment {
 	var converter = new(MarathonConverter)
 	var deployment deployment
@@ -70,11 +89,16 @@ func createDeployment(service *api.Service, client gomarathonClientAbstractor) d
 	return deployment
 }
 
+// The deploymentGroup gathers and manages a collection of deployment
+// tasks.
 type deploymentGroup struct {
 	id          string
 	deployments []deployment
 }
 
+// Determines if a deployment group is done.
+//
+// A group is done only when all of the deployment tasks have been completed.
 func (g *deploymentGroup) Done() bool {
 	completed := true
 	for _, deployment := range g.deployments {
@@ -84,6 +108,9 @@ func (g *deploymentGroup) Done() bool {
 	return completed
 }
 
+// Determines if deployment group has failed.
+//
+// A group has failed if any of the deployment tasks have failed.
 func (g *deploymentGroup) Failed() bool {
 	failed := false
 

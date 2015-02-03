@@ -31,6 +31,8 @@ type PanamaxServiceConverter interface {
 type MarathonConverter struct {
 }
 
+// Convert to Services takes a list of gomarathon Applications and converts them
+// into a list of api Services
 func (c *MarathonConverter) convertToServices(apps []*gomarathon.Application) []*api.Service {
 	services := make([]*api.Service, len(apps))
 
@@ -41,6 +43,7 @@ func (c *MarathonConverter) convertToServices(apps []*gomarathon.Application) []
 	return services
 }
 
+// Converts a single gomarathon Application into an api Service
 func (c *MarathonConverter) convertToService(app *gomarathon.Application) *api.Service {
 	service := new(api.Service)
 
@@ -54,6 +57,7 @@ func (c *MarathonConverter) convertToService(app *gomarathon.Application) *api.S
 	return service
 }
 
+// Convert a list of api Services into a list of gomarathon Applications
 func (c *MarathonConverter) convertToApps(services []*api.Service) []*gomarathon.Application {
 	apps := make([]*gomarathon.Application, len(services))
 	for i := range services {
@@ -63,6 +67,7 @@ func (c *MarathonConverter) convertToApps(services []*api.Service) []*gomarathon
 	return apps
 }
 
+// Convert a single api Service into a gomarathon Application
 func (c *MarathonConverter) convertToApp(service *api.Service) *gomarathon.Application {
 	app := new(gomarathon.Application)
 
