@@ -64,25 +64,32 @@ func deploymentState(deployment *deployment, ctx *context) stateFn {
 
 func createDockerMapping(app *gomarathon.Application, name string) map[string]string {
 
+	var min_port = 0
+	var host = ""
 	var docker = make(map[string]string)
 
-	host := app.Tasks[0].Host
-	min_port := app.Tasks[0].Ports[0]
-	mappings := app.Container.Docker.PortMappings
-	protocol := strings.ToUpper(mappings[0].Protocol)
-
-	docker[fmt.Sprintf("PORT")] = fmt.Sprintf("%s://%s:%d", protocol, host, min_port)
 	docker[fmt.Sprintf("NAME")] = fmt.Sprintf("%s", name)
 
-	for i := range mappings {
-		servicePort := app.Tasks[0].Ports[i]
-		containerPort := mappings[i].ContainerPort
-		protocol := strings.ToUpper(mappings[i].Protocol)
+	if len(app.Tasks) > 0 {
+		host = app.Tasks[0].Host
+		if len(app.Tasks[0].Ports) > 0 {
+			min_port = app.Tasks[0].Ports[0]
+			mappings := app.Container.Docker.PortMappings
+			protocol := strings.ToUpper(mappings[0].Protocol)
 
-		docker[fmt.Sprintf("PORT_%d_%s", containerPort, protocol)] = fmt.Sprintf("%s://%s:%d", protocol, host, servicePort)
-		docker[fmt.Sprintf("PORT_%d_%s_PROTO", containerPort, protocol)] = fmt.Sprintf("%s", protocol)
-		docker[fmt.Sprintf("PORT_%d_%s_ADDR", containerPort, protocol)] = host
-		docker[fmt.Sprintf("PORT_%d_%s_PORT", containerPort, protocol)] = fmt.Sprintf("%d", servicePort)
+			docker[fmt.Sprintf("PORT")] = fmt.Sprintf("%s://%s:%d", protocol, host, min_port)
+
+			for i := range mappings {
+				servicePort := app.Tasks[0].Ports[i]
+				containerPort := mappings[i].ContainerPort
+				protocol := strings.ToUpper(mappings[i].Protocol)
+
+				docker[fmt.Sprintf("PORT_%d_%s", containerPort, protocol)] = fmt.Sprintf("%s://%s:%d", protocol, host, servicePort)
+				docker[fmt.Sprintf("PORT_%d_%s_PROTO", containerPort, protocol)] = fmt.Sprintf("%s", protocol)
+				docker[fmt.Sprintf("PORT_%d_%s_ADDR", containerPort, protocol)] = host
+				docker[fmt.Sprintf("PORT_%d_%s_PORT", containerPort, protocol)] = fmt.Sprintf("%d", servicePort)
+			}
+		}
 	}
 
 	return docker
