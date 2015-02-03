@@ -11,7 +11,7 @@ import (
 
 const (
 	API_VERSION = "v1"
-	VERSION = "0.1.0"
+	VERSION     = "0.1.0"
 )
 
 type martiniServer struct {

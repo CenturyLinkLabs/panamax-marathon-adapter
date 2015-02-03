@@ -1,10 +1,18 @@
 {
 	"ImportPath": "github.com/CenturyLinkLabs/panamax-marathon-adapter",
-	"GoVersion": "go1.3.2",
+	"GoVersion": "go1.3",
 	"Deps": [
 		{
 			"ImportPath": "github.com/CenturyLinkLabs/gomarathon",
 			"Rev": "b005c4f93790b93b46687561cdc2f7c31cf08640"
+		},
+		{
+			"ImportPath": "github.com/CenturyLinkLabs/panamax-marathon-adapter/api",
+			"Rev": "9c75e6468c3e84c3808ce1c889ce2e6afa04eee0"
+		},
+		{
+			"ImportPath": "github.com/CenturyLinkLabs/panamax-marathon-adapter/marathon",
+			"Rev": "9c75e6468c3e84c3808ce1c889ce2e6afa04eee0"
 		},
 		{
 			"ImportPath": "github.com/codegangsta/inject",
@@ -15,10 +23,6 @@
 			"ImportPath": "github.com/codegangsta/martini",
 			"Comment": "v1.0",
 			"Rev": "49411a5b646861ad29a6ddd5351717a0a9c49b94"
-		},
-		{
-			"ImportPath": "github.com/satori/go.uuid",
-			"Rev": "3beb4ac9036769bac8fea7ee8d686280d7ff02ea"
 		}
 	]
 }

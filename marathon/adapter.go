@@ -9,7 +9,6 @@ import (
 
 	"github.com/CenturyLinkLabs/gomarathon"
 	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
-	"github.com/satori/go.uuid"
 )
 
 // Creates a client connection to Marathon on the provided endpoint.
@@ -45,14 +44,15 @@ type gomarathonClientAbstractor interface {
 	GetAppTasks(string) (*gomarathon.Response, error)
 	CreateApp(*gomarathon.Application) (*gomarathon.Response, error)
 	CreateGroup(*gomarathon.Group) (*gomarathon.Response, error)
+	GetGroup(string) (*gomarathon.Response, error)
 	DeleteApp(string) (*gomarathon.Response, error)
 	DeleteGroup(string) (*gomarathon.Response, error)
 }
 
 type marathonAdapter struct {
-	client      gomarathonClientAbstractor
-	conv        PanamaxServiceConverter
-	generateUID func() string
+	client   gomarathonClientAbstractor
+	conv     PanamaxServiceConverter
+	deployer Deployer
 }
 
 // Create an instance of the marathon adapter.
@@ -60,7 +60,8 @@ func NewMarathonAdapter(endpoint string) *marathonAdapter {
 	adapter := new(marathonAdapter)
 	adapter.client = newClient(endpoint)
 	adapter.conv = new(MarathonConverter)
-	adapter.generateUID = func() string { return fmt.Sprintf("%s", uuid.NewV4()) }
+	adapter.deployer = newMarathonDeployer()
+
 	return adapter
 }
 
@@ -89,23 +90,9 @@ func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 // Implementation of the PanamaxAdapter CreateServices interface
 func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Service, *api.Error) {
 	var apiErr *api.Error
-	var deployments = make([]deployment, len(services))
-	g := m.generateUID()
 
-	dependents := m.findDependencies(services)
-	for i := range services {
-		if dependents[services[i].Name] != 0 {
-			services[i].Deployment.Count = 1
-		}
-
-		m.prepareServiceForDeployment(g, services[i])
-		deployments[i] = createDeployment(services[i], m.client)
-	}
-
-	myGroup := new(deploymentGroup)
-	myGroup.deployments = deployments
-
-	status := deployGroup(myGroup, DEPLOY_TIMEOUT)
+	myGroup := m.deployer.BuildDeploymentGroup(services, m.client)
+	status := m.deployer.DeployGroup(myGroup, DEPLOY_TIMEOUT)
 
 	switch status.code {
 	case FAIL:
@@ -135,23 +122,4 @@ func (m *marathonAdapter) DestroyService(id string) *api.Error {
 	m.client.DeleteGroup(group) // Remove group if possible we dont care about error or return.
 
 	return apiErr
-}
-
-func (m *marathonAdapter) prepareServiceForDeployment(group string, service *api.Service) {
-	var serviceName = sanitizeServiceName(service.Name)
-
-	service.Id = fmt.Sprintf("%s.%s", group, serviceName)
-	service.Name = fmt.Sprintf("/%s/%s", group, serviceName)
-	service.ActualState = "deploying"
-}
-
-func (m *marathonAdapter) findDependencies(services []*api.Service) map[string]int {
-	var deps = make(map[string]int)
-	for s := range services {
-		for l := range services[s].Links {
-			deps[services[s].Links[l].Name] = 1
-		}
-	}
-
-	return deps
 }
