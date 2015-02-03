@@ -2,6 +2,7 @@
 package marathon // import "github.com/CenturyLinkLabs/panamax-marathon-adapter/marathon"
 
 import (
+	"crypto/rand"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/CenturyLinkLabs/gomarathon"
 	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
-	"github.com/satori/go.uuid"
 )
 
 // Creates a client connection to Marathon on the provided endpoint.
@@ -51,8 +51,8 @@ type gomarathonClientAbstractor interface {
 }
 
 type marathonAdapter struct {
-	client      gomarathonClientAbstractor
-	conv        PanamaxServiceConverter
+	client gomarathonClientAbstractor
+	conv   PanamaxServiceConverter
 }
 
 func NewMarathonAdapter(endpoint string) *marathonAdapter {
@@ -151,9 +151,12 @@ func (m *marathonAdapter) findDependencies(services []*api.Service) map[string]i
 
 func (m *marathonAdapter) generateUniqueUID() string {
 
-	// take first stanza of generated UID
-	uid := strings.Split(fmt.Sprintf("%s", uuid.NewV4()), "-")[0]
+	//generate a random number expressed in hex
+	num := make([]byte, 4)
+	rand.Read(num)
+	uid := fmt.Sprintf("%X", num)
 
+	fmt.Println("in generateUniqueID")
 	if _, err := m.client.GetGroup(uid); err == nil {
 		uid = m.generateUniqueUID()
 	}
