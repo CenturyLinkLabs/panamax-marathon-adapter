@@ -26,6 +26,14 @@ func newClient(endpoint string) *gomarathon.Client {
 	return c
 }
 
+func sanitizeServiceName(name string) string {
+	name = strings.Replace(name, " ", "", -1)
+	name = strings.Replace(name, "-", "", -1)
+	name = strings.Replace(name, "_", "", -1)
+	name = strings.Replace(name, ",", "", -1)
+	return name
+}
+
 type gomarathonClientAbstractor interface {
 	ListApps() (*gomarathon.Response, error)
 	GetApp(string) (*gomarathon.Response, error)
@@ -119,7 +127,7 @@ func (m *marathonAdapter) DestroyService(id string) *api.Error {
 }
 
 func (m *marathonAdapter) prepareServiceForDeployment(group string, service *api.Service) {
-	var serviceName = service.Name
+	var serviceName = sanitizeServiceName(service.Name)
 
 	service.Id = fmt.Sprintf("%s.%s", group, serviceName)
 	service.Name = fmt.Sprintf("/%s/%s", group, serviceName)
