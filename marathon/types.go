@@ -15,7 +15,7 @@ const (
 )
 
 const (
-	DEPLOY_TIMEOUT = time.Minute * 30
+	DEPLOY_TIMEOUT = time.Minute * 10
 )
 
 type stateFn func(*deployment, *context) stateFn
