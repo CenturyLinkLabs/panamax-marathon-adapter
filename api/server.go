@@ -49,6 +49,7 @@ func NewServer(adapterInst PanamaxAdapter) *martiniServer {
 	return &server
 }
 
+// Start the server.
 func (m *martiniServer) Start() {
 	err := http.ListenAndServe(":8001", m.svr)
 	if err != nil {

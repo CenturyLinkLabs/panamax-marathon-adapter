@@ -22,6 +22,12 @@ func loadDockerVars(ctx *context, reqs map[string]string) map[string]string {
 	return docker
 }
 
+// The requirement gathering state.
+//
+// Validates the requirements listed in the deployment are found in the
+// shared context. If the requirements are not found then stay in the
+// requirement gathering state. If the requirements are found then load
+// the docker variables and return the deployment state.
 func requirementState(deployment *deployment, ctx *context) stateFn {
 	log.Printf("Requirements %s", deployment.name)
 	if len(deployment.reqs) == 0 {
@@ -46,6 +52,11 @@ func requirementState(deployment *deployment, ctx *context) stateFn {
 	}
 }
 
+// The deployment state.
+//
+// Using the client on the deployment task desploy the application.
+// If the deployment was successful return the post action state.
+// If the deployment failed then set fail code and return nil.
 func deploymentState(deployment *deployment, ctx *context) stateFn {
 	log.Printf("Deploying: %s", deployment.application.ID)
 
@@ -93,6 +104,11 @@ func createDockerMapping(app *gomarathon.Application, name string) map[string]st
 	return docker
 }
 
+// The post action state.
+//
+// Find all the network mappings on this application and create the
+// required docker environment variables. These variables are set into
+// the shared context under this application's identifier.
 func postActionState(deployment *deployment, ctx *context) stateFn {
 	log.Printf("Post Deployment: %s", deployment.application.ID)
 

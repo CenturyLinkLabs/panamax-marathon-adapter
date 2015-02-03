@@ -55,6 +55,7 @@ type marathonAdapter struct {
 	generateUID func() string
 }
 
+// Create an instance of the marathon adapter.
 func NewMarathonAdapter(endpoint string) *marathonAdapter {
 	adapter := new(marathonAdapter)
 	adapter.client = newClient(endpoint)
@@ -63,6 +64,7 @@ func NewMarathonAdapter(endpoint string) *marathonAdapter {
 	return adapter
 }
 
+// Implementation of the PanamaxAdapter GetServices interface
 func (m *marathonAdapter) GetServices() ([]*api.Service, *api.Error) {
 	var apiErr *api.Error
 
@@ -73,6 +75,7 @@ func (m *marathonAdapter) GetServices() ([]*api.Service, *api.Error) {
 	return m.conv.convertToServices(response.Apps), apiErr
 }
 
+// Implementation of the PanamaxAdapter GetService interface
 func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 	var apiErr *api.Error
 
@@ -83,6 +86,7 @@ func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 	return m.conv.convertToService(response.App), apiErr
 }
 
+// Implementation of the PanamaxAdapter CreateServices interface
 func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Service, *api.Error) {
 	var apiErr *api.Error
 	var deployments = make([]deployment, len(services))
@@ -113,10 +117,12 @@ func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Servic
 	return services, apiErr
 }
 
+// Implementation of the PanamaxAdapter UpdateService interface
 func (m *marathonAdapter) UpdateService(s *api.Service) *api.Error {
 	return nil
 }
 
+// Implementation of the PanamaxAdapter DestroyService interface
 func (m *marathonAdapter) DestroyService(id string) *api.Error {
 	var apiErr *api.Error
 	group, _ := splitServiceId(id, ".")
@@ -136,7 +142,7 @@ func (m *marathonAdapter) prepareServiceForDeployment(group string, service *api
 
 	service.Id = fmt.Sprintf("%s.%s", group, serviceName)
 	service.Name = fmt.Sprintf("/%s/%s", group, serviceName)
-	service.ActualState = "deployed"
+	service.ActualState = "deploying"
 }
 
 func (m *marathonAdapter) findDependencies(services []*api.Service) map[string]int {
