@@ -49,6 +49,15 @@ func (c *mockClient) CreateGroup(group *gomarathon.Group) (*gomarathon.Response,
 	}
 }
 
+func (c *mockClient) GetGroup(id string) (*gomarathon.Response, error) {
+	args := c.Mock.Called(id)
+	if len(args) == 1 {
+		return args.Get(0).(*gomarathon.Response), nil
+	} else {
+		return args.Get(0).(*gomarathon.Response), args.Error(1)
+	}
+}
+
 func (c *mockClient) DeleteApp(id string) (*gomarathon.Response, error) {
 	args := c.Mock.Called(id)
 	if len(args) == 1 {
@@ -120,7 +129,6 @@ func setup() (*mockClient, *mockConverter, *marathonAdapter) {
 	adapter := new(marathonAdapter)
 	adapter.client = testClient
 	adapter.conv = testConverter
-	adapter.generateUID = func() string { return "pmx" }
 
 	return testClient, testConverter, adapter
 }

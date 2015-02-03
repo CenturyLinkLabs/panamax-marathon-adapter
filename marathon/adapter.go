@@ -45,6 +45,7 @@ type gomarathonClientAbstractor interface {
 	GetAppTasks(string) (*gomarathon.Response, error)
 	CreateApp(*gomarathon.Application) (*gomarathon.Response, error)
 	CreateGroup(*gomarathon.Group) (*gomarathon.Response, error)
+	GetGroup(string) (*gomarathon.Response, error)
 	DeleteApp(string) (*gomarathon.Response, error)
 	DeleteGroup(string) (*gomarathon.Response, error)
 }
@@ -52,14 +53,12 @@ type gomarathonClientAbstractor interface {
 type marathonAdapter struct {
 	client      gomarathonClientAbstractor
 	conv        PanamaxServiceConverter
-	generateUID func() string
 }
 
 func NewMarathonAdapter(endpoint string) *marathonAdapter {
 	adapter := new(marathonAdapter)
 	adapter.client = newClient(endpoint)
 	adapter.conv = new(MarathonConverter)
-	adapter.generateUID = func() string { return fmt.Sprintf("%s", uuid.NewV4()) }
 	return adapter
 }
 
@@ -86,7 +85,7 @@ func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Service, *api.Error) {
 	var apiErr *api.Error
 	var deployments = make([]deployment, len(services))
-	g := m.generateUID()
+	g := m.generateUniqueUID()
 
 	dependents := m.findDependencies(services)
 	for i := range services {
@@ -148,4 +147,16 @@ func (m *marathonAdapter) findDependencies(services []*api.Service) map[string]i
 	}
 
 	return deps
+}
+
+func (m *marathonAdapter) generateUniqueUID() string {
+
+	// take first stanza of generated UID
+	uid := strings.Split(fmt.Sprintf("%s", uuid.NewV4()), "-")[0]
+
+	if _, err := m.client.GetGroup(uid); err == nil {
+		uid = m.generateUniqueUID()
+	}
+
+	return uid
 }
