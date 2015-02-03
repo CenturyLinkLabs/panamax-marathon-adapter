@@ -20,7 +20,6 @@ func loadDockerVars(ctx *context, reqs map[string]string) map[string]string {
 	}
 
 	return docker
-
 }
 
 func requirementState(deployment *deployment, ctx *context) stateFn {
@@ -45,21 +44,20 @@ func requirementState(deployment *deployment, ctx *context) stateFn {
 			return deploymentState
 		}
 	}
-
 }
 
 func deploymentState(deployment *deployment, ctx *context) stateFn {
-	log.Printf("Starting Deployment: %s", deployment.application.ID)
+	log.Printf("Deploying: %s", deployment.application.ID)
 
 	_, err := deployment.client.CreateApp(deployment.application)
 	time.Sleep(2000 * time.Millisecond)
 	if err != nil {
 		deployment.status.code = FAIL
 		deployment.status.message = fmt.Sprintf("%s", err)
+		log.Printf("Error Deployment: %s - %s", deployment.application.ID, err)
 		return nil
 	}
 	return postActionState
-
 }
 
 func createDockerMapping(app *gomarathon.Application, name string) map[string]string {
@@ -96,6 +94,8 @@ func createDockerMapping(app *gomarathon.Application, name string) map[string]st
 }
 
 func postActionState(deployment *deployment, ctx *context) stateFn {
+	log.Printf("Post Deployment: %s", deployment.application.ID)
+
 	application := deployment.application
 	_, name := splitServiceId(application.ID[1:], "/")
 
@@ -121,5 +121,4 @@ func postActionState(deployment *deployment, ctx *context) stateFn {
 		return nil
 	}
 	return postActionState
-
 }
