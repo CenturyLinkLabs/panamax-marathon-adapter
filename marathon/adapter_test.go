@@ -185,6 +185,29 @@ func TestSuccessfulGetServices(t *testing.T) {
 
 }
 
+func TestFailedGetServices(t *testing.T) {
+
+	// setup
+	testClient, testConverter, _, adapter := setup()
+
+	resp := new(gomarathon.Response)
+
+	// set expectations
+	testClient.On("ListApps").Return(resp, api.NewError(404, "services not found"))
+
+	// call the code to be tested
+	_, err := adapter.GetServices()
+
+	// assert if expectations are met
+	assert.NotNil(t, err)
+	assert.Equal(t, 404, err.Code)
+	assert.Equal(t, "Error(404): services not found", err.Message)
+
+	testClient.AssertExpectations(t)
+	testConverter.AssertNotCalled(t, "convertToServices", nil)
+
+}
+
 func TestSuccessfulGetService(t *testing.T) {
 
 	// setup
@@ -208,6 +231,29 @@ func TestSuccessfulGetService(t *testing.T) {
 
 	testClient.AssertExpectations(t)
 	testConverter.AssertExpectations(t)
+
+}
+
+func TestFailedGetService(t *testing.T) {
+
+	// setup
+	testClient, testConverter, _, adapter := setup()
+
+	resp := new(gomarathon.Response)
+
+	// set expectations
+	testClient.On("GetApp", "/invalid").Return(resp, api.NewError(404, "service not found"))
+
+	// call the code to be tested
+	_, err := adapter.GetService("invalid")
+
+	// assert if expectations are met
+	assert.NotNil(t, err)
+	assert.Equal(t, 404, err.Code)
+	assert.Equal(t, "Error(404): service not found", err.Message)
+
+	testClient.AssertExpectations(t)
+	testConverter.AssertNotCalled(t, "convertToService", nil)
 
 }
 
@@ -288,5 +334,28 @@ func TestSuccessfulDeleteService(t *testing.T) {
 	assert.NoError(t, err)
 
 	testClient.AssertExpectations(t)
+
+}
+
+func TestFailedDeleteService(t *testing.T) {
+
+	// setup
+	testClient, _, _, adapter := setup()
+
+	resp := new(gomarathon.Response)
+
+	// set expectations
+	testClient.On("DeleteApp", "/foo").Return(resp, api.NewError(404, "service not found"))
+
+	// call the code to be tested
+	err := adapter.DestroyService("foo")
+
+	// assert if expectations are met
+	assert.NotNil(t, err)
+	assert.Equal(t, 404, err.Code)
+	assert.Equal(t, "Error(404): service not found", err.Message)
+
+	testClient.AssertExpectations(t)
+	testClient.AssertNotCalled(t, "DeleteGroup", "")
 
 }

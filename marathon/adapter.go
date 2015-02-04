@@ -72,6 +72,7 @@ func (m *marathonAdapter) GetServices() ([]*api.Service, *api.Error) {
 	response, err := m.client.ListApps()
 	if err != nil {
 		apiErr = api.NewError(http.StatusNotFound, err.Error())
+		return nil, apiErr
 	}
 	return m.conv.convertToServices(response.Apps), apiErr
 }
@@ -83,6 +84,7 @@ func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 	response, err := m.client.GetApp(sanitizeMarathonAppURL(id))
 	if err != nil {
 		apiErr = api.NewError(http.StatusNotFound, err.Error())
+		return nil, apiErr
 	}
 	return m.conv.convertToService(response.App), apiErr
 }
@@ -117,6 +119,7 @@ func (m *marathonAdapter) DestroyService(id string) *api.Error {
 	_, err := m.client.DeleteApp(sanitizeMarathonAppURL(id))
 	if err != nil {
 		apiErr = api.NewError(http.StatusNotFound, err.Error())
+		return apiErr
 	}
 
 	m.client.DeleteGroup(group) // Remove group if possible we dont care about error or return.
