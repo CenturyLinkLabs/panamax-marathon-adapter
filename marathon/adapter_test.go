@@ -1,11 +1,13 @@
 package marathon
 
 import (
+	"testing"
+	"time"
+
 	"github.com/CenturyLinkLabs/gomarathon"
 	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"testing"
 )
 
 // Mock the gomarathonClient type that implements the gomarathonClientAbstractor interface
@@ -110,6 +112,25 @@ func (c *mockConverter) convertToApp(service *api.Service) *gomarathon.Applicati
 	return args.Get(0).(*gomarathon.Application)
 }
 
+// Mock the Deployer
+type mockDeployer struct {
+	mock.Mock
+	deployStatus status
+}
+
+func (d *mockDeployer) setStatus(s status) {
+	d.deployStatus = s
+}
+
+func (d *mockDeployer) DeployGroup(group *deploymentGroup, duration time.Duration) status {
+	return d.deployStatus
+}
+
+func (d *mockDeployer) BuildDeploymentGroup(services []*api.Service, client gomarathonClientAbstractor) *deploymentGroup {
+	args := d.Mock.Called(services, client)
+	return args.Get(0).(*deploymentGroup)
+}
+
 // Tests
 func TestMarathonAdapterImplementsPanamaxAdapterInterface(t *testing.T) {
 	assert.Implements(t, (*api.PanamaxAdapter)(nil), new(marathonAdapter))
@@ -123,20 +144,26 @@ func TestMockConverterImplementsPanamaxServiceConverterInterface(t *testing.T) {
 	assert.Implements(t, (*PanamaxServiceConverter)(nil), new(mockConverter))
 }
 
-func setup() (*mockClient, *mockConverter, *marathonAdapter) {
+func TestMockDeployerImplementsDeployerInterface(t *testing.T) {
+	assert.Implements(t, (*Deployer)(nil), new(mockDeployer))
+}
+
+func setup() (*mockClient, *mockConverter, *mockDeployer, *marathonAdapter) {
+	testDeployer := new(mockDeployer)
 	testClient := new(mockClient)
 	testConverter := new(mockConverter)
 	adapter := new(marathonAdapter)
 	adapter.client = testClient
 	adapter.conv = testConverter
+	adapter.deployer = testDeployer
 
-	return testClient, testConverter, adapter
+	return testClient, testConverter, testDeployer, adapter
 }
 
 func TestSuccessfulGetServices(t *testing.T) {
 
 	// setup
-	testClient, testConverter, adapter := setup()
+	testClient, testConverter, _, adapter := setup()
 
 	resp := new(gomarathon.Response)
 	resp.Apps = make([]*gomarathon.Application, 0)
@@ -161,7 +188,7 @@ func TestSuccessfulGetServices(t *testing.T) {
 func TestSuccessfulGetService(t *testing.T) {
 
 	// setup
-	testClient, testConverter, adapter := setup()
+	testClient, testConverter, _, adapter := setup()
 
 	resp := new(gomarathon.Response)
 	resp.App = &gomarathon.Application{ID: "foo"}
@@ -184,25 +211,24 @@ func TestSuccessfulGetService(t *testing.T) {
 
 }
 
-/*
-NOTE: Note sure how to test this with the channels now!
-
 func TestSuccessfulCreateServices(t *testing.T) {
 
 	// setup
-	testClient, testConverter, adapter := setup()
+	testClient, testConverter, testDeployer, adapter := setup()
 
-	//resp := new(gomarathon.Response)
+	testDeployer.setStatus(status{code:OK})
+
+	testService := new(api.Service)
+	testService.Name = "/foo"
+
 	services := make([]*api.Service, 1)
 	services[0] = &api.Service{Name: "foo"}
-	group := new(gomarathon.Group)
-	group.ID = "pmx"
-	group.Apps = make([]*gomarathon.Application, 0)
+	group := new(deploymentGroup)
+
 
 	// set expectations
-	//testClient.On("CreateApp", group).Return(resp)
-	testConverter.On("convertToApps", services).Return(group.Apps)
-
+	testDeployer.On("BuildDeploymentGroup", services, testClient).Return(group)
+	testDeployer.On("DeployGroup", group, DEPLOY_TIMEOUT).Return(status{code: OK})
 	// call the code to be tested
 	_, err := adapter.CreateServices(services)
 
@@ -213,12 +239,41 @@ func TestSuccessfulCreateServices(t *testing.T) {
 	testConverter.AssertExpectations(t)
 
 }
-*/
+
+func TestFailedCreateServices(t *testing.T) {
+
+	// setup
+	testClient, testConverter, testDeployer, adapter := setup()
+
+	testDeployer.setStatus(status{code:FAIL})
+
+	testService := new(api.Service)
+	testService.Name = "/foo"
+
+	services := make([]*api.Service, 1)
+	services[0] = &api.Service{Name: "foo"}
+	group := new(deploymentGroup)
+
+
+	// set expectations
+	testDeployer.On("BuildDeploymentGroup", services, testClient).Return(group)
+	testDeployer.On("DeployGroup", group, DEPLOY_TIMEOUT).Return(status{code: OK})
+	// call the code to be tested
+	_, err := adapter.CreateServices(services)
+
+	// assert if expectations are met
+	assert.NotNil(t, err)
+	assert.Equal(t, 409, err.Code)
+
+	testClient.AssertExpectations(t)
+	testConverter.AssertExpectations(t)
+
+}
 
 func TestSuccessfulDeleteService(t *testing.T) {
 
 	// setup
-	testClient, _, adapter := setup()
+	testClient, _, _, adapter := setup()
 
 	resp := new(gomarathon.Response)
 

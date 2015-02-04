@@ -2,7 +2,6 @@
 package marathon // import "github.com/CenturyLinkLabs/panamax-marathon-adapter/marathon"
 
 import (
-	"crypto/rand"
 	"fmt"
 	"log"
 	"net/http"
@@ -51,14 +50,16 @@ type gomarathonClientAbstractor interface {
 }
 
 type marathonAdapter struct {
-	client gomarathonClientAbstractor
-	conv   PanamaxServiceConverter
+	client   gomarathonClientAbstractor
+	conv     PanamaxServiceConverter
+	deployer Deployer
 }
 
 func NewMarathonAdapter(endpoint string) *marathonAdapter {
 	adapter := new(marathonAdapter)
 	adapter.client = newClient(endpoint)
 	adapter.conv = new(MarathonConverter)
+	adapter.deployer = newMarathonDeployer()
 	return adapter
 }
 
@@ -84,23 +85,9 @@ func (m *marathonAdapter) GetService(id string) (*api.Service, *api.Error) {
 
 func (m *marathonAdapter) CreateServices(services []*api.Service) ([]*api.Service, *api.Error) {
 	var apiErr *api.Error
-	var deployments = make([]deployment, len(services))
-	g := m.generateUniqueUID()
 
-	dependents := m.findDependencies(services)
-	for i := range services {
-		if dependents[services[i].Name] != 0 {
-			services[i].Deployment.Count = 1
-		}
-
-		m.prepareServiceForDeployment(g, services[i])
-		deployments[i] = createDeployment(services[i], m.client)
-	}
-
-	myGroup := new(deploymentGroup)
-	myGroup.deployments = deployments
-
-	status := deployGroup(myGroup, DEPLOY_TIMEOUT)
+	myGroup := m.deployer.BuildDeploymentGroup(services, m.client)
+	status := m.deployer.DeployGroup(myGroup, DEPLOY_TIMEOUT)
 
 	switch status.code {
 	case FAIL:
@@ -128,38 +115,4 @@ func (m *marathonAdapter) DestroyService(id string) *api.Error {
 	m.client.DeleteGroup(group) // Remove group if possible we dont care about error or return.
 
 	return apiErr
-}
-
-func (m *marathonAdapter) prepareServiceForDeployment(group string, service *api.Service) {
-	var serviceName = sanitizeServiceName(service.Name)
-
-	service.Id = fmt.Sprintf("%s.%s", group, serviceName)
-	service.Name = fmt.Sprintf("/%s/%s", group, serviceName)
-	service.ActualState = "deployed"
-}
-
-func (m *marathonAdapter) findDependencies(services []*api.Service) map[string]int {
-	var deps = make(map[string]int)
-	for s := range services {
-		for l := range services[s].Links {
-			deps[services[s].Links[l].Name] = 1
-		}
-	}
-
-	return deps
-}
-
-func (m *marathonAdapter) generateUniqueUID() string {
-
-	//generate a random number expressed in hex
-	num := make([]byte, 4)
-	rand.Read(num)
-	uid := fmt.Sprintf("%X", num)
-
-	fmt.Println("in generateUniqueID")
-	if _, err := m.client.GetGroup(uid); err == nil {
-		uid = m.generateUniqueUID()
-	}
-
-	return uid
 }

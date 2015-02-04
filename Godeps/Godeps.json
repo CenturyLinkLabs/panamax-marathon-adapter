@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/centurylinklabs/panamax-marathon-adapter",
+	"ImportPath": "github.com/CenturyLinkLabs/panamax-marathon-adapter",
 	"GoVersion": "go1.3",
 	"Deps": [
 		{
