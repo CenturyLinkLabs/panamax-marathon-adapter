@@ -75,7 +75,7 @@ func TestSuccessfulUpdateService(t *testing.T) {
 	params := map[string]string{
 		"id": "test",
 	}
-	code, _ := updateService(newMockAdapter(501, ""), params, req)
+	code, _ := updateService(testEncoder, newMockAdapter(501, ""), params, req)
 
 	assert.Equal(t, http.StatusNotImplemented, code)
 }
@@ -85,7 +85,7 @@ func TestSuccessfulDeleteService(t *testing.T) {
 		"id": "test",
 	}
 
-	code, _ := deleteService(newMockAdapter(204, ""), params)
+	code, _ := deleteService(testEncoder, newMockAdapter(204, ""), params)
 
 	assert.Equal(t, http.StatusNoContent, code)
 }
@@ -129,7 +129,7 @@ func TestDeleteServiceNotFound(t *testing.T) {
 		"id": "test",
 	}
 
-	code, body := deleteService(adapter, params)
+	code, body := deleteService(testEncoder, adapter, params)
 
 	assert.Equal(t, http.StatusNotFound, code)
 	assert.Equal(t, "service not found", body)

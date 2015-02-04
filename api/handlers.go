@@ -20,6 +20,7 @@ func sanitizeErrorCode(code int) int {
 //
 // Will return a status of 200 if successful or
 // an internal error if there is an error.
+//
 // Refer to https://github.com/CenturyLinkLabs/panamax-ui/wiki/Adapter-Developer's-Guide
 func getServices(e encoder, adapter PanamaxAdapter) (int, string) {
 	data, err := adapter.GetServices()
@@ -44,7 +45,6 @@ func getService(e encoder, adapter PanamaxAdapter, params martini.Params) (int, 
 	if err != nil {
 		return sanitizeErrorCode(err.Code), err.Message
 	}
-
 	return http.StatusOK, e.Encode(data)
 }
 
@@ -69,8 +69,8 @@ func createServices(e encoder, adapter PanamaxAdapter, r *http.Request) (int, st
 
 // The handler to update a service.
 // Currently this action will only return a not implemented status.
-func updateService(adapter PanamaxAdapter, params martini.Params, r *http.Request) (int, string) {
-	return http.StatusNotImplemented, ""
+func updateService(e encoder, adapter PanamaxAdapter, params martini.Params, r *http.Request) (int, string) {
+	return http.StatusNotImplemented, e.Encode("")
 }
 
 // The handler to remove a service.
@@ -79,7 +79,7 @@ func updateService(adapter PanamaxAdapter, params martini.Params, r *http.Reques
 // any application error code will be returned.
 //
 // Refer to https://github.com/CenturyLinkLabs/panamax-ui/wiki/Adapter-Developer's-Guide
-func deleteService(adapter PanamaxAdapter, params martini.Params) (int, string) {
+func deleteService(e encoder, adapter PanamaxAdapter, params martini.Params) (int, string) {
 	id := params["id"]
 
 	err := adapter.DestroyService(id)
@@ -87,11 +87,13 @@ func deleteService(adapter PanamaxAdapter, params martini.Params) (int, string) 
 		return sanitizeErrorCode(err.Code), err.Message
 	}
 
-	return http.StatusNoContent, ""
+	return http.StatusNoContent, e.Encode("")
 }
 
 // The getMetadata function is a utility method to report the
 // version and type of adapter.
+//
+// Refer to https://github.com/CenturyLinkLabs/panamax-ui/wiki/Adapter-Developer's-Guide
 func getMetadata(e encoder, adapter PanamaxAdapter) (int, string) {
 
 	data := &Metadata{Version: VERSION, Type: "marathon"}
