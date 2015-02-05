@@ -15,7 +15,7 @@ const (
 )
 
 const (
-	DEPLOY_TIMEOUT = time.Minute * 10
+	DEPLOY_TIMEOUT = time.Minute * 1
 )
 
 
@@ -27,13 +27,16 @@ type stateFn func(*deployment, *context) stateFn
 // map of maps. The context is used by the deployment
 // workflow to share data between steps.
 type context struct {
+	signal int
 	values map[string]map[string]string
 }
 
 // The context AddKey function is a helper to insert maps into the
 // context under a provided key.
 func (c *context) AddKey(key string, values map[string]string) {
+	c.signal = OK
 	c.values[key] = values
+
 }
 
 // Creates a new context with empty values.
@@ -93,6 +96,7 @@ func createDeployment(service *api.Service, client gomarathonClientAbstractor) d
 // tasks.
 type deploymentGroup struct {
 	id          string
+	status 	    int
 	deployments []deployment
 }
 

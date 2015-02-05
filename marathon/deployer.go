@@ -78,6 +78,7 @@ func (m MarathonDeployer) DeployGroup(myGroup *deploymentGroup, timeout time.Dur
 		select {
 		case <-timeoutChannel:
 			log.Printf("Deployment timed out")
+			ctx.signal = TIMEOUT
 			return status{code: TIMEOUT}
 		case <-deploymentChannel:
 			if myGroup.Done() {
@@ -113,7 +114,6 @@ func (m MarathonDeployer) findDependencies(services []*api.Service) map[string]i
 }
 
 func (m MarathonDeployer) generateUniqueUID(client gomarathonClientAbstractor) string {
-
 	//generate a random number expressed in hex
 	uid := m.uidGenerator()
 
@@ -126,18 +126,17 @@ func (m MarathonDeployer) generateUniqueUID(client gomarathonClientAbstractor) s
 
 func timeoutChannel(duration time.Duration) chan bool {
 	// make a timeout channel
-	timeout := make(chan bool, 1)
+	timeout := make(chan bool)
 	go func() {
 		select {
 		case <-time.After(duration):
-			timeout <- true
+    			timeout <- true
 		}
 	}()
 	return timeout
 }
 
 func deployGroupChannel(myGroup *deploymentGroup, ctx *context) chan status {
-
 	deploymentChannel := make(chan status, len(myGroup.deployments))
 	for i := 0; i < len(myGroup.deployments); i++ {
 		go deploy(deploymentChannel, &myGroup.deployments[i], ctx)
@@ -150,7 +149,11 @@ func deploy(done chan status, deployment *deployment, ctx *context) {
 	log.Printf("Starting Deployment: %s", deployment.name)
 
 	for state := deployment.startingState; state != nil; {
-		state = state(deployment, ctx)
+		if ctx.signal == TIMEOUT {
+			state = nil
+		} else {
+			state = state(deployment, ctx)
+		}
 	}
 
 	done <- deployment.status

@@ -29,7 +29,7 @@ func loadDockerVars(ctx *context, reqs map[string]string) map[string]string {
 // requirement gathering state. If the requirements are found then load
 // the docker variables and return the deployment state.
 func requirementState(deployment *deployment, ctx *context) stateFn {
-	log.Printf("Requirements %s", deployment.name)
+	log.Printf("Deployment Requirements: %s", deployment.application.ID)
 	if len(deployment.reqs) == 0 {
 		return deploymentState
 	} else {
@@ -58,8 +58,6 @@ func requirementState(deployment *deployment, ctx *context) stateFn {
 // If the deployment was successful return the post action state.
 // If the deployment failed then set fail code and return nil.
 func deploymentState(deployment *deployment, ctx *context) stateFn {
-	log.Printf("Deploying: %s", deployment.application.ID)
-
 	_, err := deployment.client.CreateApp(deployment.application)
 	time.Sleep(2000 * time.Millisecond)
 	if err != nil {
