@@ -29,7 +29,6 @@ func loadDockerVars(ctx *context, reqs map[string]string) map[string]string {
 // requirement gathering state. If the requirements are found then load
 // the docker variables and return the deployment state.
 func requirementState(deployment *deployment, ctx *context) stateFn {
-	log.Printf("Requirements %s", deployment.name)
 	if len(deployment.reqs) == 0 {
 		return deploymentState
 	} else {
@@ -43,6 +42,7 @@ func requirementState(deployment *deployment, ctx *context) stateFn {
 		if !found {
 			return requirementState
 		} else {
+			log.Printf("Deployment Requirements: %s", deployment.application.ID)
 			dockers := loadDockerVars(ctx, deployment.reqs)
 			for key, value := range dockers {
 				deployment.application.Env[key] = value
@@ -58,8 +58,6 @@ func requirementState(deployment *deployment, ctx *context) stateFn {
 // If the deployment was successful return the post action state.
 // If the deployment failed then set fail code and return nil.
 func deploymentState(deployment *deployment, ctx *context) stateFn {
-	log.Printf("Deploying: %s", deployment.application.ID)
-
 	_, err := deployment.client.CreateApp(deployment.application)
 	time.Sleep(2000 * time.Millisecond)
 	if err != nil {
@@ -72,7 +70,6 @@ func deploymentState(deployment *deployment, ctx *context) stateFn {
 }
 
 func createDockerMapping(app *gomarathon.Application, name string) map[string]string {
-
 	var min_port = 0
 	var host = ""
 	var docker = make(map[string]string)
@@ -110,13 +107,12 @@ func createDockerMapping(app *gomarathon.Application, name string) map[string]st
 // required docker environment variables. These variables are set into
 // the shared context under this application's identifier.
 func postActionState(deployment *deployment, ctx *context) stateFn {
-	log.Printf("Post Deployment: %s", deployment.application.ID)
-
 	application := deployment.application
 	_, name := splitServiceId(application.ID[1:], "/")
 
 	res, _ := deployment.client.GetAppTasks(application.ID)
 	if len(res.Tasks) != 0 {
+		log.Printf("Post Deployment: %s", deployment.application.ID)
 		appRes, err := deployment.client.GetApp(application.ID)
 		if err != nil {
 			deployment.status.code = FAIL
