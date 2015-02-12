@@ -2,6 +2,7 @@ package marathon
 
 import (
 	"time"
+	"log"
 
 	"github.com/CenturyLinkLabs/gomarathon"
 	"github.com/CenturyLinkLabs/panamax-marathon-adapter/api"
@@ -79,6 +80,7 @@ func createDeployment(service *api.Service, client gomarathonClientAbstractor) d
 	var reqs = make(map[string]string)
 	links := service.Links
 	for i := range links {
+		log.Printf("Linking: %s with Alias: %s", links[i].Name, links[i].Alias)
 		reqs[links[i].Name] = links[i].Alias
 	}
 

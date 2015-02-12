@@ -133,6 +133,7 @@ func TestPostAction(t *testing.T) {
 	var svc = api.Service{Name: "Foo", Command: "echo"}
 	var ctx = NewContext()
 	var app = setupTestApplication()
+	app.TasksRunning = 1
 
 	deployment := createDeployment(&svc, client)
 	task.Host = "1.2.3.4"
@@ -141,7 +142,6 @@ func TestPostAction(t *testing.T) {
 	resp.Tasks = []*gomarathon.Task{task}
 	deployment.name = "TestEmpty"
 
-	client.On("GetAppTasks", deployment.application.ID).Return(resp)
 	client.On("GetApp", deployment.application.ID).Return(resp)
 	postActionState(&deployment, &ctx)
 

@@ -110,8 +110,8 @@ func postActionState(deployment *deployment, ctx *context) stateFn {
 	application := deployment.application
 	_, name := splitServiceId(application.ID[1:], "/")
 
-	res, _ := deployment.client.GetAppTasks(application.ID)
-	if len(res.Tasks) != 0 {
+	res, _ := deployment.client.GetApp(application.ID)
+	if res.App.TasksRunning > 0 {
 		log.Printf("Post Deployment: %s", deployment.application.ID)
 		appRes, err := deployment.client.GetApp(application.ID)
 		if err != nil {
@@ -132,5 +132,6 @@ func postActionState(deployment *deployment, ctx *context) stateFn {
 
 		return nil
 	}
+	time.Sleep(2000 * time.Millisecond)
 	return postActionState
 }
