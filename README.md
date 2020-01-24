@@ -5,5 +5,9 @@
 [Panamax](http://panamax.io) is a containerized app creator with an open-source app marketplace hosted in GitHub. Panamax provides a friendly interface for users of Docker, Fleet & CoreOS. With Panamax, you can easily create, share, and deploy any containerized app no matter how complex it might be. Learn more at [Panamax.io](http://panamax.io) or browse the [Panamax Wiki](https://github.com/CenturyLinkLabs/panamax-ui/wiki).
 
 # Panamax Marathon Adapter
+## NOTE
+
+This repo is no longer being maintained. Users are welcome to fork it, but we make no warranty of its functionality.
+
 
 The Marathon adapter, in combination with the Panamax remote agent, enables the deployment of a Panamax template to a Mesos cluster using Marathon and Zookeeper.
